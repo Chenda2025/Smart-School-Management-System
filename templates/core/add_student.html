@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student •  School</title>
+    {% load static %}
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <!-- Your main dashboard CSS (has sidebar + main-content styles) -->
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .add-student-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+            overflow: hidden;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 2.5rem;
+        }
+        .user-preview {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s;
+        }
+        .user-preview.filled {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        #user-photo {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border: 6px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            padding: 0.8rem 2.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-5 px-4">
+
+            <div class="add-student-card">
+
+                <div class="card-header text-white text-center">
+                    <h2 class="mb-0 fw-bold">
+                        Add Student from Existing User
+                    </h2>
+                </div>
+
+                <div class="card-body p-5">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center fs-5">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <!-- USER SELECTION -->
+                        <div class="mb-5">
+                            <label class="form-label fs-4">Select User Account</label>
+                            <select name="user" class="form-select form-select-lg shadow-sm" required onchange="showUserInfo(this)">
+                                <option value="">Choose a user to convert to student...</option>
+                                {% for u in available_users %}
+                                <option value="{{ u.id }}"
+                                        data-name="{{ u.get_full_name }}"
+                                        data-email="{{ u.email|default:'No email' }}"
+                                        data-photo="{% if u.photo %}{{ u.photo.url }}{% else %}https://ui-avatars.com/api/?name={{ u.get_full_name|urlencode }}&background=10b981&color=fff&size=200&rounded=true&bold=true{% endif %}">
+                                    {{ u.get_full_name }} ({{ u.get_role_display }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- USER PREVIEW -->
+                        <div class="user-preview mb-5" id="user-preview">
+                            <img id="user-photo" src="" class="rounded-circle mb-3" alt="User photo">
+                            <h4 id="user-name" class="fw-bold text-primary"></h4>
+                            <p id="user-email" class="text-muted fs-5"></p>
+                        </div>
+
+                        <!-- STUDENT DETAILS -->
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Roll Number</label>
+                                <input type="text" name="roll_number" class="form-control form-control-lg shadow-sm" required placeholder="e.g., 2025-001">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Class</label>
+                                <select name="classroom" class="form-select form-select-lg shadow-sm" required>
+                                    <option value="">Select Class</option>
+                                    {% for c in classrooms %}
+                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Section</label>
+                                <select name="section" class="form-select form-select-lg shadow-sm" required>
+                                    <option value="">Select Section</option>
+                                    {% for s in sections %}
+                                        <option value="{{ s.id }}">{{ s }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-success btn-lg px-5 shadow-lg">
+                                Add as Student
+                            </button>
+                            <a href="/users/all/" class="btn btn-outline-secondary btn-lg px-5 ms-3">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showUserInfo(select) {
+            const option = select.options[select.selectedIndex];
+            const preview = document.getElementById('user-preview');
+            
+            if (option.value) {
+                document.getElementById('user-photo').src = option.dataset.photo;
+                document.getElementById('user-name').textContent = option.dataset.name;
+                document.getElementById('user-email').textContent = option.dataset.email;
+                preview.classList.add('filled');
+            } else {
+                document.getElementById('user-photo').src = "";
+                document.getElementById('user-name').textContent = "";
+                document.getElementById('user-email').textContent = "";
+                preview.classList.remove('filled');
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/staff_dashboard.js' %}"></script>
+</body>
+</html>

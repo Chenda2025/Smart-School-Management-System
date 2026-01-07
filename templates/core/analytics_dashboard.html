@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard • School</title>
+    {% load static %}
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; min-height: 100vh; }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-8px); }
+        h1 {
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content p-5">
+        <div class="container-fluid">
+            <h1 class="text-center display-3 mb-5">SCHOOL ANALYTICS DASHBOARD</h1>
+
+            <!-- Key Stats -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h4>30-Day Attendance Rate</h4>
+                        <h2 class="display-5 fw-bold">{{ attendance_rate }}%</h2>
+                        <small>{{ total_present }} present • {{ total_absent }} absent</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                        <h4>Top Performer Avg</h4>
+                        <h2 class="display-5 fw-bold">
+                            {% if top_performer_avg %}
+                                {{ top_performer_avg }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                        <h4>School-Wide Avg</h4>
+                        <h2 class="display-5 fw-bold">
+                            {% if school_wide_avg > 0 %}
+                                {{ school_wide_avg }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Class Performance -->
+                <div class="col-lg-6">
+                    <div class="card p-4">
+                        <h3 class="text-info mb-4"><i class="bi bi-bar-chart-fill me-2"></i>Class Performance</h3>
+                        <div id="classChart"></div>
+                    </div>
+                </div>
+
+                <!-- Top Students -->
+                <div class="col-lg-6">
+                    <div class="card p-4">
+                        <h3 class="text-success mb-4"><i class="bi bi-trophy-fill me-2"></i>Top 10 Students</h3>
+                        <div id="topStudents"></div>
+                    </div>
+                </div>
+
+                <!-- Needs Attention -->
+                <div class="col-lg-6">
+                    <div class="card p-4">
+                        <h3 class="text-danger mb-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>Needs Attention</h3>
+                        <div id="bottomStudents"></div>
+                    </div>
+                </div>
+
+                <!-- Subject Radar -->
+                <div class="col-lg-6">
+                    <div class="card p-4">
+                        <h3 class="text-warning mb-4"><i class="bi bi-pie-chart-fill me-2"></i>Subject Performance</h3>
+                        <div id="radarChart"></div>
+                    </div>
+                </div>
+
+                <!-- Attendance Trend -->
+                <div class="col-12">
+                    <div class="card p-4">
+                        <h3 class="text-cyan mb-4"><i class="bi bi-calendar3 me-2"></i>30-Day Attendance Trend</h3>
+                        <div id="attendanceChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const layout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#e2e8f0' },
+            margin: { t: 40, b: 60, l: 60, r: 40 }
+        };
+
+        // Class Bar Chart
+        const classData = {{ class_performance|safe }};
+        Plotly.newPlot('classChart', [{
+            x: classData.map(c => c.name),
+            y: classData.map(c => c.avg_score || 0),
+            type: 'bar',
+            marker: { color: '#8b5cf6', line: { width: 2, color: '#a78bfa' }}
+        }], { ...layout, title: 'Average Score by Class' });
+
+        // Top Students
+        const top = {{ top_students|safe }};
+        Plotly.newPlot('topStudents', [{
+            x: top.map(s => s.avg_score),
+            y: top.map(s => `${s.user__first_name} ${s.user__last_name} (${s.classroom__name})`),
+            text: top.map(s => s.avg_score.toFixed(1) + '%'),
+            textposition: 'outside',
+            type: 'bar',
+            orientation: 'h',
+            marker: { color: '#10b981' }
+        }], { ...layout, title: 'Top Performing Students' });
+
+        // Bottom Students
+        const bottom = {{ bottom_students|safe }};
+        Plotly.newPlot('bottomStudents', [{
+            x: bottom.map(s => s.avg_score),
+            y: bottom.map(s => `${s.user__first_name} ${s.user__last_name} (${s.classroom__name})`),
+            text: bottom.map(s => s.avg_score.toFixed(1) + '%'),
+            textposition: 'outside',
+            type: 'bar',
+            orientation: 'h',
+            marker: { color: '#ef4444' }
+        }], { ...layout, title: 'Students Needing Support' });
+
+        // Subject Radar
+        const radar = {{ subjects_radar|safe }};
+        Plotly.newPlot('radarChart', [{
+            type: 'scatterpolar',
+            r: radar.map(s => s.avg_score || 0),
+            theta: radar.map(s => s.name),
+            fill: 'toself',
+            fillcolor: 'rgba(251, 191, 36, 0.3)',
+            line: { color: '#fbbf24' }
+        }], {
+            ...layout,
+            polar: { radialaxis: { range: [0, 100], showticklabels: true } },
+            title: 'Average Score by Subject'
+        });
+
+        // Attendance Line Chart
+        const att = {{ attendance_data|safe }};
+        Plotly.newPlot('attendanceChart', [
+            {
+                x: att.map(d => d.date),
+                y: att.map(d => d.present),
+                name: 'Present',
+                line: { color: '#10b981', width: 4 },
+                fill: 'tozeroy'
+            },
+            {
+                x: att.map(d => d.date),
+                y: att.map(d => d.absent),
+                name: 'Absent',
+                line: { color: '#ef4444', width: 4 },
+                fill: 'tonexty'
+            }
+        ], {
+            ...layout,
+            title: 'Daily Attendance Trend (Last 30 Days)',
+            xaxis: { tickangle: -45 },
+            yaxis: { title: 'Number of Students' }
+        });
+    </script>
+</body>
+</html>

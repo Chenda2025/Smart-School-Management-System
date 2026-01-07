@@ -1,0 +1,11 @@
+# core/templatetags/dictionary_extras.py
+from django import template
+
+register = template.Library()
+
+@register.filter
+def get_item(dictionary, key):
+    """Usage: {{ my_dict|get_item:"key_name" }}"""
+    if dictionary is None:
+        return None
+    return dictionary.get(str(key))

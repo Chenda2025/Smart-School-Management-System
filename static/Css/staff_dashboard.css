@@ -1,0 +1,123 @@
+/* staff_dashboard.css - Elite School 2025 */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    margin: 0;
+}
+
+.header {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.profile-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+}
+
+/* SIDEBAR */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: #0f172a;
+    color: white;
+    transition: all 0.4s ease;
+    overflow-y: auto;
+    z-index: 1000;
+    padding-bottom: 100px;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .nav-link span,
+.sidebar.collapsed .nav-category,
+.sidebar.collapsed .logo h4,
+.sidebar.collapsed .logo small,
+.sidebar.collapsed .badge {
+    display: none !important;
+}
+
+.sidebar.collapsed .logo img {
+    width: 50px;
+}
+
+.nav-link {
+    color: #94a3b8 !important;
+    padding: 14px 20px;
+    border-radius: 0 50px 50px 0;
+    margin: 4px 15px;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: #3b82f6;
+    color: white !important;
+    transform: translateX(10px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.nav-link i {
+    width: 30px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.nav-category {
+    color: #64748b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 20px 25px 8px;
+    font-weight: 600;
+}
+
+.main-content {
+    margin-left: 280px;
+    transition: all 0.4s ease;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: 80px;
+}
+
+.card {
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card {
+    background: linear-gradient(45deg, #6366f1, #8b5cf6);
+    border-radius: 15px;
+    color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 80px;
+    }
+    .sidebar span,
+    .sidebar .nav-category,
+    .logo h4,
+    .logo small {
+        display: none;
+    }
+    .main-content {
+        margin-left: 80px;
+    }
+}

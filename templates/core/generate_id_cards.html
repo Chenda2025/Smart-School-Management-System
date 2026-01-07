@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate ID Card • School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        @page { size: A4; margin: 0.5cm; }
+        body { margin: 0; font-family: Arial; background: #f0f9ff; }
+        .page { width: 21cm; background: white; padding: 1cm; page-break-after: always; }
+        .header { text-align: center; margin-bottom: 1cm; }
+        .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5cm; }
+        .card {
+            width: 8.6cm; height: 5.4cm; background: white; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;
+            border: 8px solid #1e40af; position: relative;
+        }
+        .card-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 8px; text-align: center; font-size: 1rem; }
+        .card-body { display: flex; padding: 10px; gap: 10px; }
+        .photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid white; }
+        .info { flex: 1; font-size: 0.9rem; }
+        .info strong { color: #1e40af; }
+        .qr { position: absolute; bottom: 8px; right: 8px; width: 80px; }
+        .print-btn { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 30px; font-size: 1.5rem; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 999; }
+        @media print { .print-btn { display: none; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar.html' %}
+    <button class="print-btn" onclick="window.print()">PRINT ALL CARDS</button>
+
+    <div class="page">
+        <div class="header">
+            <h1>ELITE SCHOOL — STUDENT ID CARDS 2025-2026</h1>
+            <p>Total Cards: {{ students.count }}</p>
+        </div>
+
+        <div class="cards">
+            {% for student in students %}
+            <div class="card">
+                <div class="card-header">
+                    <strong>ELITE SCHOOL</strong>
+                </div>
+                <div class="card-body">
+                    <img src="https://ui-avatars.com/api/?name={{ student.user.get_full_name|urlencode }}&background=1e40af&color=fff&size=200&bold=true&rounded=true"
+                         class="photo" alt="Photo">
+                    <div class="info">
+                        <p><strong>{{ student.user.get_full_name }}</strong></p>
+                        <p>Roll: <strong>{{ student.roll_number }}</strong></p>
+                        <p>Class: <strong>{{ student.classroom.name }}</strong></p>
+                        <p>ID: <strong>{{ student.id }}</strong></p>
+                    </div>
+                </div>
+                <div class="qr">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=ID{{ student.id }}&size=80x80" alt="QR">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+</body>
+</html>

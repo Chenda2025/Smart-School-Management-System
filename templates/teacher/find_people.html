@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find People to Chat • Elite International School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f1f5f9, #e0e7ff);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .main-content {
+            margin-left: 300px;
+            padding: 3rem;
+            min-height: 100vh;
+        }
+        @media (max-width: 991px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .page-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 3rem;
+            text-align: center;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 15px 40px rgba(99,102,241,0.3);
+        }
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+        }
+        .search-card {
+            background: white;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 30px 80px rgba(99,102,241,0.2);
+            padding: 3rem;
+        }
+        .person-item {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border-left: 5px solid #6366f1;
+        }
+        .person-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .person-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #6366f1;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .no-results {
+            text-align: center;
+            padding: 4rem;
+            color: #64748b;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 2rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar_teacher.html' %}
+
+    <div class="main-content">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Find People to Chat With</h1>
+                    </div>
+
+                    <div class="search-card">
+                        <form method="GET" class="mb-4">
+                            <div class="input-group input-group-lg">
+                                <input type="text" name="search" class="form-control" placeholder="Search by name..." value="{{ search }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="row g-4">
+                            <!-- Students -->
+                            <!-- Students -->
+                            {% if students %}
+                                <div class="col-12">
+                                    <h3 class="section-title">Students in My Classes</h3>
+                                </div>
+                                {% for student in students %}
+                                    <div class="col-md-6">
+                                        <a href="{% url 'start_chat' student.user.id %}" class="text-decoration-none text-dark">
+                                            <div class="person-item">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        {% if student.photo %}
+                                                            <img src="{{ student.photo.url }}" 
+                                                                class="person-avatar" alt="{{ student.user.get_full_name }}">
+                                                        {% else %}
+                                                            <img src="{% static 'images/default-avatar.png' %}" 
+                                                                class="person-avatar" alt="{{ student.user.get_full_name }}">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ student.user.get_full_name }}</strong>
+                                                        <small class="text-muted d-block">Student • {{ student.classroom.name }}</small>
+                                                        <small class="text-muted d-block">Roll: {{ student.roll_number }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Parents -->
+                            {% if parents %}
+                                <div class="col-12">
+                                    <h3 class="section-title">Parents of My Students</h3>
+                                </div>
+                                {% for parent in parents %}
+                                    <div class="col-md-6">
+                                        <a href="{% url 'start_chat' parent.user.id %}" class="text-decoration-none text-dark">
+                                            <div class="person-item">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        <img src="{{ parent.user.profile.photo.url|default:'/static/images/default-avatar.png' }}"
+                                                             class="person-avatar" alt="{{ parent.user.get_full_name }}">
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ parent.user.get_full_name }}</strong>
+                                                        <small class="text-muted d-block">Parent</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Other Teachers & Admin -->
+                            {% if other_users %}
+                                <div class="col-12">
+                                    <h3 class="section-title">Teachers & Admin</h3>
+                                </div>
+                                {% for user in other_users %}
+                                    <div class="col-md-6">
+                                        <a href="{% url 'start_chat' user.id %}" class="text-decoration-none text-dark">
+                                            <div class="person-item">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        <img src="{{ user.profile.photo.url|default:'/static/images/default-avatar.png' }}"
+                                                             class="person-avatar" alt="{{ user.get_full_name }}">
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ user.get_full_name }}</strong>
+                                                        <small class="text-muted d-block">{{ user.role|capfirst }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- No results -->
+                            {% if not students and not parents and not other_users %}
+                                <div class="col-12">
+                                    <div class="no-results">
+                                        <i class="bi bi-people fs-1 mb-3"></i>
+                                        <h4>No people found</h4>
+                                        <p>Try a different search term</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="{% url 'teacher_chat' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left me-2"></i> Back to Chat
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

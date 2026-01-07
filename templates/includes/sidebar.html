@@ -1,0 +1,183 @@
+{% load static %}
+{% load user_tags %}
+<!-- templates/includes/sidebar.html — FINAL 2025 ELITE EDITION -->
+<div class="sidebar" id="sidebar">
+
+    <!-- School Logo & Name -->
+    <div class="text-center py-4 border-bottom border-light border-opacity-25">
+        <img src="{% static 'images/school_logo.jpg' %}" 
+             class="rounded-circle mb-3 shadow-lg" width="85" alt="Elite School"
+             onerror="this.src='https://via.placeholder.com/85/1e40af/ffffff?text=ELITE';">
+        <h4 class="text-white mb-0 fw-bold">ELITE SCHOOL</h4>
+        <small class="text-light opacity-80">Smart Management System 2025</small>
+    </div>
+
+    <div class="mt-4">
+        <!-- Mobile Toggle -->
+        <a href="javascript:void(0)" class="d-lg-none text-white text-center d-block mb-4" onclick="toggleSidebar()">
+            <i class="bi bi-list fs-1"></i>
+        </a>
+
+        <nav class="nav flex-column px-3">
+
+            <!-- Dashboard -->
+            <a class="nav-link {% if request.path == '/staff/' %}active{% endif %}" href="/staff/">
+                <i class="bi bi-speedometer2 text-info"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- PEOPLE MANAGEMENT -->
+            <div class="nav-category">PEOPLE MANAGEMENT</div>
+            <a class="nav-link {% if request.path == '/users/all/' %}active{% endif %}" href="{% url 'all_users_list' %}">
+                <i class="bi bi-people-fill text-primary"></i>
+                <span>All Users</span>
+            </a>
+            <a class="nav-link {% if request.path == '/add-student/' %}active{% endif %}" href="{% url 'add_student' %}">
+                <i class="bi bi-person-plus-fill text-success"></i>
+                <span>Add Student</span>
+            </a>
+            <a class="nav-link {% if request.path == '/add-teacher/' %}active{% endif %}" href="{% url 'add_teacher' %}">
+                <i class="bi bi-person-badge-fill text-warning"></i>
+                <span>Add Teacher</span>
+            </a>
+            <a class="nav-link {% if 'bulk-import' in request.path %}active{% endif %}" href="{% url 'bulk_import' %}">
+                <i class="bi bi-file-earmark-spreadsheet-fill text-cyan"></i>
+                <span>Bulk Import</span>
+            </a>
+
+            <!-- ACADEMICS -->
+            <div class="nav-category">ACADEMICS</div>
+
+            <a class="nav-link {% if request.path == '/classes/' %}active{% endif %}" href="{% url 'classes_list' %}">
+                <i class="bi bi-building-fill text-indigo"></i>
+                <span>Classes & Sections</span>
+            </a>
+
+            <a class="nav-link {% if request.path == '/subjects/' %}active{% endif %}" href="{% url 'subjects_list' %}">
+                <i class="bi bi-book-fill text-orange"></i>
+                <span>Subjects</span>
+            </a>
+
+            <a class="nav-link" href="{% url 'assign_timetable' %}">
+                <i class="bi bi-calendar-week-fill text-orange fs-4"></i>
+                <span>Schedule</span>
+            </a>
+
+            <!-- SCORES & GRADES -->
+            <!-- ANALYTICS & INSIGHTS -->
+            <div class="nav-category">ANALYTICS & INSIGHTS</div>
+
+            <a class="nav-link {% if request.path == '/analytics/' %}active{% endif %}" href="{% url 'analytics_dashboard' %}">
+                <i class="bi bi-graph-up-arrow fs-5 text-purple"></i>
+                <span>Analytics Dashboard</span>
+            </a>
+
+            <a class="nav-link {% if request.path == '/performance/' %}active{% endif %}" href="{% url 'performance_dashboard' %}">
+                <i class="bi bi-trophy-fill text-warning"></i>
+                <span>Performance Dashboard</span>
+            </a>
+
+            <a class="nav-link {% if request.resolver_match.url_name == 'legacy_scores' %}active{% endif %}" href="{% url 'legacy_scores' %}">
+                <i class="bi bi-clock-history fs-4 text-warning me-3"></i>
+                <span>Legacy Score Archive</span>
+            </a>
+
+            <a class="nav-link {% if request.path == '/enter-scores/' %}active{% endif %}" href="{% url 'enter_scores' %}">
+                <i class="bi bi-clipboard2-check-fill fs-5 text-success"></i>
+                <span>Enter Scores</span>
+            </a>
+
+            
+
+            <!-- ATTENDANCE -->
+            <div class="nav-category">ATTENDANCE</div>
+            <a class="nav-link {% if request.path == '/mark-attendance/' %}active{% endif %}" href="{% url 'mark_attendance' %}">
+                <i class="bi bi-calendar-check-fill text-teal"></i>
+                <span>Mark Attendance</span>
+            </a>
+            <!-- QR ATTENDANCE — ONLY SUPERSTAFF & TEACHERS -->
+            {% if user.is_superuser or user|has_group:"Teacher" %}
+            <a class="nav-link d-flex align-items-center py-4 px-5 rounded-4 mb-3 position-relative overflow-hidden
+            {% if request.path == '/qr-attendance/' %}bg-primary text-white shadow-lg active-glow{% else %}text-info bg-hover-gradient{% endif %}"
+            href="{% url 'qr_attendance_home' %}">
+                
+                <!-- ICON + TEXT -->
+                <div class="d-flex align-items-center flex-grow-1">
+                    <i class="bi bi-qr-code-scan fs-2 me-4"></i>
+                    <span class="fw-bold fs-5">QR Attendance</span>
+                </div>
+
+                <!-- ADMIN BADGE — PULSING & PREMIUM -->
+                {% if user.is_superuser %}
+                    <span class="badge bg-danger fs-6 px-3 py-2 animate-pulse shadow-lg">
+                        <i class="bi bi-shield-lock me-1"></i> Admin
+                    </span>
+                {% endif %}
+
+                <!-- HOVER GRADIENT EFFECT -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 h-100 opacity-0 hover-gradient"></div>
+            </a>
+            {% endif %}
+
+            <!-- REPORTS & CARDS -->
+            <div class="nav-category">REPORTS & CARDS</div>
+            <a class="nav-link" href="{% url 'report_list' %}">
+                <i class="bi bi-file-pdf-fill text-danger"></i>
+                <span>Report Cards</span>
+            </a>
+            <a class="nav-link" href="{% url 'qr_scan' %}">
+                <i class="bi bi-card-image text-pink"></i>
+                <span>Scan Card</span>
+            </a>
+            <a class="nav-link" href="{% url 'export_excel' %}">
+                <i class="bi bi-file-excel-fill text-success"></i>
+                <span>Export All Data</span>
+            </a>
+
+            <!-- COMMUNICATION -->
+            <div class="nav-category">COMMUNICATION</div>
+            <a class="nav-link" href="{% url 'send_notification' %}">
+                <i class="bi bi-bell-fill text-warning"></i>
+                <span> Notifications 
+                    <span class="badge bg-danger ms-2"></span>
+                </span>
+            </a>
+            <a class="nav-link" href="{% url 'chat:chat_list' %}">
+                <i class="bi bi-chat-dots-fill text-primary"></i>
+                <span> Internal Chat </span>
+            </a>
+
+            <a class="nav-link d-flex align-items-center py-2" href="{% url 'ai_chat_page' %}">
+                <i class="bi bi-robot text-primary me-3" style="font-size: 1.3rem;"></i>
+                <span class="fw-medium"> AI Assistant </span>
+                <small class="badge bg-success rounded-pill ms-auto opacity-75">Online</small>
+            </a>
+
+            <!-- SYSTEM -->
+            <div class="nav-category">SYSTEM</div>
+            <a class="nav-link" href="/admin/">
+                <i class="bi bi-shield-lock-fill text-secondary"></i>
+                <span>Full Admin Panel</span>
+            </a>
+            <!-- LOGOUT BUTTON — ELITE 2025 EDITION -->
+            <!-- FINAL LOGOUT — 100% WORKING & BEAUTIFUL -->
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="nav-link text-danger fw-bold border-0 bg-transparent p-0 m-0 d-flex align-items-center"
+                        style="cursor: pointer; transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateX(8px)'"
+                        onmouseout="this.style.transform='translateX(0)'">
+                    <i class="bi bi-box-arrow-right me-2"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </nav>
+    </div>
+</div>
+
+<!-- Mobile Hamburger -->
+<button class="btn btn-primary position-fixed bottom-0 start-0 m-4 d-lg-none rounded-circle shadow-lg"
+        style="width:65px;height:65px;z-index:9999;" onclick="toggleSidebar()">
+    <i class="bi bi-list fs-3"></i>
+</button>

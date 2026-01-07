@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile • Elite School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+</head>
+<body class="bg-light">
+
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+
+                    <div class="card shadow-lg border-0 rounded-4">
+                        <div class="card-header bg-primary text-white text-center py-4">
+                            <h3 class="mb-0">Edit Profile</h3>
+                        </div>
+                        <div class="card-body p-5">
+
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <form method="POST" enctype="multipart/form-data">
+                                {% csrf_token %}
+
+                                <!-- Current Photo + Upload -->
+                                <div class="text-center mb-5">
+                                    {% if profile_user.photo %}
+                                        <img src="{{ profile_user.photo.url }}" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover; border: 5px solid #e2e8f0;">
+                                    {% else %}
+                                        <div class="bg-secondary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center text-white fs-1" style="width:150px;height:150px;">
+                                            {{ profile_user.first_name.0|upper }}{{ profile_user.last_name.0|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <br>
+                                    <label class="btn btn-outline-primary btn-lg mt-3">
+                                        Change Photo
+                                        <input type="file" name="photo" accept="image/*" class="d-none" onchange="previewPhoto(event)">
+                                    </label>
+                                    <div class="mt-3">
+                                        <img id="preview" class="rounded-circle" width="150" height="150" style="display:none; object-fit: cover; border: 5px solid #e2e8f0;">
+                                    </div>
+                                </div>
+
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">First Name</label>
+                                        <input type="text" name="first_name" value="{{ profile_user.first_name }}" class="form-control form-control-lg" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Last Name</label>
+                                        <input type="text" name="last_name" value="{{ profile_user.last_name }}" class="form-control form-control-lg" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">Email Address</label>
+                                        <input type="email" name="email" value="{{ profile_user.email }}" class="form-control form-control-lg" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Role</label>
+                                        <select name="role" class="form-select form-select-lg">
+                                            <option value="admin" {% if profile_user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                            <option value="teacher" {% if profile_user.role == 'teacher' %}selected{% endif %}>Teacher</option>
+                                            <option value="student" {% if profile_user.role == 'student' %}selected{% endif %}>Student</option>
+                                            <option value="parent" {% if profile_user.role == 'parent' %}selected{% endif %}>Parent</option>
+                                        </select>
+                                    </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Staff Status</label>
+                                        <div class="form-check form-switch fs-5 mt-3">
+                                            <input class="form-check-input" type="checkbox" name="is_staff" {% if profile_user.is_staff %}checked{% endif %}>
+                                            <label class="form-check-label">Can access Django Admin</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">New Password (leave blank to keep current)</label>
+                                        <input type="password" name="password" class="form-control form-control-lg" placeholder="Only fill if changing password">
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-5">
+                                    <button type="submit" class="btn btn-success btn-lg px-5 shadow-lg">
+                                        Save Changes
+                                    </button>
+                                    <a href="{% url 'user_profile' profile_user.id %}" class="btn btn-outline-secondary btn-lg px-5 ms-3">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Preview Script -->
+    <script>
+        function previewPhoto(event) {
+            const output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.style.display = 'block';
+            output.onload = () => URL.revokeObjectURL(output.src);
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/staff_dashboard.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects • School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        body { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); min-height: 100vh; }
+        .page-header { background: linear-gradient(135deg, #f59e0b, #d97706); padding: 4rem; border-radius: 32px; text-align: center; color: white; box-shadow: 0 25px 60px rgba(245,158,11,0.3); }
+        .search-bar { background: white; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 1rem 1.5rem; max-width: 600px; margin: 0 auto 3rem; }
+        .search-bar input { border: none; outline: none; font-size: 1.2rem; width: 100%; }
+        .subject-card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.12); transition: all 0.4s; position: relative; }
+        .subject-card:hover { transform: translateY(-15px); }
+        .subject-header { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 2.5rem; text-align: center; }
+        .subject-name { font-size: 1.9rem; font-weight: 700; margin: 0; }
+        .info-badge { background: rgba(255,255,255,0.2); padding: 0.7rem 1.4rem; border-radius: 50px; margin: 0.5rem; }
+        .action-btn { position: absolute; top: 15px; right: 70px; background: white; color: #d97706; width: 40px; height: 40px; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; }
+        .delete-btn { position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; width: 40px; height: 40px; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; }
+        .subject-card:hover .action-btn, .subject-card:hover .delete-btn { display: flex; }
+        .modal-content { border-radius: 28px; overflow: hidden; }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-5 px-4">
+
+            <div class="page-header mb-5">
+                <h1 class="display-4 fw-bold mb-3">Subjects Management</h1>
+                <p class="lead opacity-90 mb-0">Add • Edit • Delete • Search — Instant Control</p>
+            </div>
+
+            <div class="search-bar">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-search fs-3 text-warning me-3"></i>
+                    <input type="text" id="searchInput" placeholder="Search subject, class, teacher...">
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center fs-5 rounded-4 shadow mb-4">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ADD SUBJECT -->
+            <div class="card shadow-lg mx-auto mb-5" style="max-width: 900px; border-radius: 28px;">
+                <div class="card-body p-5">
+                    <h3 class="text-warning fw-bold mb-4 text-center">Add New Subject</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_subject">
+                        <div class="row g-4">
+                            <div class="col-md-5">
+                                <input type="text" name="name" class="form-control form-control-lg" placeholder="Subject Name" required>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="classroom" class="form-select form-control-lg" required>
+                                    <option value="">Class</option>
+                                    {% for c in classrooms %}
+                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="teacher" class="form-select form-control-lg" required>
+                                    <option value="">Teacher</option>
+                                    {% for t in teachers %}
+                                        <option value="{{ t.id }}">{{ t.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-warning btn-lg w-100 shadow">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SUBJECTS GRID -->
+            <div class="row g-4" id="subjectsGrid">
+                {% for subject in subjects %}
+                <div class="col-md-6 col-lg-4 subject-card"
+                     data-search="{{ subject.name|lower }} {{ subject.classroom.name|lower }} {{ subject.teacher.get_full_name|lower|default:'' }}">
+                    <div class="subject-header">
+                        <h2 class="subject-name">{{ subject.name }}</h2>
+                    </div>
+                    <div class="p-4 text-center">
+                        <div class="info-badge"><i class="bi bi-building"></i> {{ subject.classroom.name }}</div>
+                        <div class="info-badge"><i class="bi bi-person"></i> {{ subject.teacher.get_full_name|default:"Unassigned" }}</div>
+                    </div>
+
+                    <!-- Edit Button -->
+                    <button class="action-btn" data-bs-toggle="modal" data-bs-target="#editModal{{ subject.id }}">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+
+                    <!-- Delete Button -->
+                    <form method="POST" class="delete-btn">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_subject">
+                        <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                        <button type="submit" onclick="return confirm('Delete {{ subject.name }}?')">
+                            ×
+                        </button>
+                    </form>
+                </div>
+
+                <!-- EDIT MODAL -->
+                <div class="modal fade" id="editModal{{ subject.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title fw-bold">Edit Subject</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST">
+                                <div class="modal-body p-5">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="edit_subject">
+                                    <input type="hidden" name="subject_id" value="{{ subject.id }}">
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Subject Name</label>
+                                        <input type="text" name="name" value="{{ subject.name }}" class="form-control form-control-lg" required>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Class</label>
+                                        <select name="classroom" class="form-select form-control-lg" required>
+                                            {% for c in classrooms %}
+                                                <option value="{{ c.id }}" {% if c.id == subject.classroom.id %}selected{% endif %}>
+                                                    {{ c.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Teacher</label>
+                                        <select name="teacher" class="form-select form-control-lg">
+                                            <option value="">Unassigned</option>
+                                            {% for t in teachers %}
+                                                <option value="{{ t.id }}" {% if subject.teacher and t.id == subject.teacher.id %}selected{% endif %}>
+                                                    {{ t.get_full_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pb-5">
+                                    <button type="submit" class="btn btn-warning btn-lg px-5 shadow-lg fw-bold">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="emptyState" class="text-center py-5 d-none">
+                <i class="bi bi-search display-1 text-muted"></i>
+                <h3 class="mt-4 text-muted">No subjects found</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SEARCH
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.subject-card');
+            const empty = document.getElementById('emptyState');
+            let visible = 0;
+
+            cards.forEach(c => {
+                const text = c.dataset.search || '';
+                if (query === '' || text.includes(query)) {
+                    c.style.display = '';
+                    visible++;
+                } else {
+                    c.style.display = 'none';
+                }
+            });
+
+            empty.classList.toggle('d-none', visible > 0);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chat • Elite International School</title>
+{% load static %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+--tg-bg: #f8f9fa;
+--tg-header-start: #6ea8fe;
+--tg-header-end: #5288c1;
+--tg-accent: #5288c1;
+--tg-sent: #e3f2fd;
+--tg-received: #ffffff;
+--tg-text: #1a1a1a;
+--tg-muted: #707579;
+--tg-border: #e0e4e8;
+--tg-shadow: 0 4px 20px rgba(0,0,0,0.08);
+--tg-overlay-light: rgba(255, 255, 255, 0.75);
+--tg-overlay-dark: rgba(15, 23, 42, 0.82);
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--tg-bg: #0f172a;
+--tg-header-start: #1e293b;
+--tg-header-end: #1e40af;
+--tg-accent: #3b82f6;
+--tg-sent: rgba(59, 130, 246, 0.6);
+--tg-received: rgba(30, 41, 59, 0.9);
+--tg-text: #e2e8f0;
+--tg-muted: #94a3b8;
+--tg-border: #334155;
+--tg-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+}
+body {
+background: var(--tg-bg);
+color: var(--tg-text);
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+margin: 0;
+padding: 0;
+height: 100vh;
+overflow: hidden;
+}
+.main-content {
+margin-left: 300px;
+height: 100vh;
+transition: margin-left 0.3s ease;
+}
+@media (max-width: 991px) {
+.main-content { margin-left: 0; }
+}
+.chat-layout {
+display: flex;
+height: 100%;
+background: var(--tg-bg);
+}
+
+/* Sidebar */
+.chat-sidebar {
+width: 340px;
+background: var(--tg-bg);
+border-right: 1px solid var(--tg-border);
+display: flex;
+flex-direction: column;
+box-shadow: var(--tg-shadow);
+z-index: 10;
+position: relative;
+}
+.sidebar-header {
+background: linear-gradient(135deg, var(--tg-header-start), var(--tg-header-end));
+color: white;
+padding: 1rem;
+font-size: 1.3rem;
+font-weight: 600;
+display: flex;
+align-items: center;
+justify-content: space-between;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+position: relative;
+z-index: 11;
+}
+.new-chat-btn {
+width: 44px;
+height: 44px;
+border-radius: 50%;
+background: rgba(255,255,255,0.25);
+backdrop-filter: blur(10px);
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.new-chat-btn:hover {
+background: rgba(255,255,255,0.35);
+transform: translateY(-2px);
+}
+.chat-list {
+flex: 1;
+overflow-y: auto;
+padding: 8px 0;
+}
+.chat-item {
+padding: 12px 16px;
+cursor: pointer;
+display: flex;
+align-items: center;
+gap: 14px;
+transition: background 0.2s ease;
+border-radius: 0;
+margin: 0 8px;
+}
+.chat-item:hover {
+background: rgba(82, 136, 193, 0.1);
+border-radius: 12px;
+}
+.chat-item.active {
+background: rgba(82, 136, 193, 0.2);
+border-radius: 12px;
+}
+.chat-avatar {
+width: 54px;
+height: 54px;
+border-radius: 50%;
+object-fit: cover;
+flex-shrink: 0;
+border: 2px solid transparent;
+}
+.chat-item.active .chat-avatar {
+border-color: var(--tg-accent);
+}
+.chat-preview {
+flex: 1;
+min-width: 0;
+}
+.chat-name {
+font-weight: 600;
+font-size: 1.05rem;
+margin-bottom: 4px;
+}
+.chat-last-msg {
+font-size: 0.9rem;
+color: var(--tg-muted);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.chat-meta {
+text-align: right;
+font-size: 0.8rem;
+color: var(--tg-muted);
+}
+.unread-badge {
+background: #ef4444;
+color: white;
+font-size: 0.75rem;
+font-weight: 600;
+padding: 4px 8px;
+border-radius: 999px;
+min-width: 22px;
+}
+
+/* Main Chat Area */
+.chat-main {
+flex: 1;
+display: flex;
+flex-direction: column;
+background: url('https://telegram.org/img/t_cloud_bg.jpg') center/cover no-repeat fixed;
+position: relative;
+}
+.chat-main::before {
+content: '';
+position: absolute;
+inset: 0;
+background: var(--tg-overlay-light);
+backdrop-filter: blur(6px);
+}
+@media (prefers-color-scheme: dark) {
+.chat-main::before {
+background: var(--tg-overlay-dark);
+  }
+}
+.chat-content {
+position: relative;
+z-index: 1;
+display: flex;
+flex-direction: column;
+height: 100%;
+}
+.chat-header {
+background: linear-gradient(135deg, var(--tg-header-start), var(--tg-header-end));
+color: white;
+padding: 1rem;
+display: flex;
+align-items: center;
+gap: 14px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+z-index: 2;
+}
+.header-avatar {
+width: 48px;
+height: 48px;
+border-radius: 50%;
+object-fit: cover;
+border: 3px solid rgba(255,255,255,0.3);
+}
+.header-info h5 {
+margin: 0;
+font-weight: 600;
+font-size: 1.2rem;
+color: white;
+}
+.header-status {
+font-size: 0.9rem;
+opacity: 0.9;
+display: flex;
+align-items: center;
+gap: 6px;
+color: white;
+}
+.chat-messages {
+flex: 1;
+padding: 20px;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 12px;
+color: #ffffff;
+}
+.message-group {
+display: flex;
+flex-direction: column;
+max-width: 70%;
+margin-bottom: 8px;
+}
+.message-group.sent { align-self: flex-end; }
+.message-group.received { align-self: flex-start; }
+.msg {
+padding: 10px 16px;
+border-radius: 20px;
+position: relative;
+word-wrap: break-word;
+font-size: 1rem;
+line-height: 1.5;
+box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+animation: fadeIn 0.3s ease;
+color: #ffffff;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.msg.sent {
+background: var(--tg-sent);
+border-bottom-right-radius: 6px;
+}
+.msg.received {
+background: var(--tg-received);
+border-bottom-left-radius: 6px;
+border: 1px solid var(--tg-border);
+}
+.msg-time {
+font-size: 0.75rem;
+color: rgba(255, 255, 255, 0.85);
+margin-top: 6px;
+text-align: right;
+display: flex;
+align-items: center;
+justify-content: flex-end;
+gap: 6px;
+}
+.msg-check {
+color: #60a5fa;
+font-size: 1.1rem;
+}
+.chat-input {
+background: rgba(0,0,0,0.15);
+padding: 16px;
+border-top: 1px solid var(--tg-border);
+box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+backdrop-filter: blur(12px);
+}
+.input-wrapper {
+background: rgba(255, 255, 255, 0.25);
+border-radius: 28px;
+display: flex;
+align-items: center;
+padding: 8px 12px;
+box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+border: 1px solid rgba(255, 255, 255, 0.3);
+transition: all 0.3s;
+backdrop-filter: blur(10px);
+}
+.input-wrapper:focus-within {
+border-color: var(--tg-accent);
+box-shadow: 0 0 0 4px rgba(82,136,193,0.4);
+}
+.input-wrapper input {
+flex: 1;
+border: none;
+background: transparent;
+padding: 12px 8px;
+font-size: 1.05rem;
+outline: none;
+color: #ffffff;
+}
+.input-wrapper input::placeholder {
+color: rgba(255, 255, 255, 0.7);
+}
+.send-btn {
+width: 48px;
+height: 48px;
+border-radius: 50%;
+background: var(--tg-accent);
+color: white;
+border: none;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.3rem;
+transition: all 0.3s ease;
+margin-left: 8px;
+}
+.send-btn:hover {
+background: #416a9c;
+transform: scale(1.1);
+}
+.empty-chat {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+color: rgba(255, 255, 255, 0.9);
+text-align: center;
+padding: 40px;
+}
+.empty-chat i {
+font-size: 5rem;
+margin-bottom: 1.5rem;
+opacity: 0.6;
+color: white;
+}
+.empty-chat h5, .empty-chat p {
+color: white;
+}
+
+/* MODERN NEW CHAT MODAL */
+.new-chat-modal {
+    position: fixed !important;
+    top: 80px;
+    left: 360px;
+    width: 380px;
+    max-width: 90vw;
+    max-height: calc(100vh - 120px);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    z-index: 9999 !important;
+    display: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    .new-chat-modal {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+
+@media (max-width: 1200px) {
+    .new-chat-modal {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.new-chat-modal.active {
+    display: block;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+    padding: 1.2rem 1.5rem;
+    background: linear-gradient(135deg, var(--tg-header-start), var(--tg-header-end));
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.modal-close-btn:hover {
+    opacity: 1;
+}
+
+.modal-search {
+    padding: 1rem 1.5rem;
+    background: transparent;
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 1.1rem;
+}
+
+.modal-search input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: none;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.08);
+    color: #000;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+@media (prefers-color-scheme: dark) {
+    .modal-search input {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+    .modal-search input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+}
+
+.modal-search input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(82, 136, 193, 0.3);
+}
+
+.modal-search input::placeholder {
+    color: #888;
+}
+
+.modal-results {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0 8px;
+}
+
+.result-section-header {
+    padding: 12px 24px 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--tg-accent);
+    background: rgba(82, 136, 193, 0.08);
+    border-radius: 10px;
+    margin: 16px 16px 8px;
+}
+
+.person-result {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 16px;
+    margin: 4px 8px;
+}
+
+.person-result:hover {
+    background: rgba(82, 136, 193, 0.15);
+    transform: translateY(-2px);
+}
+
+.person-result-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(82, 136, 193, 0.2);
+    flex-shrink: 0;
+}
+
+.person-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.person-name {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .person-name {
+        color: #e2e8f0;
+    }
+}
+
+.person-detail {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+    .person-detail {
+        color: #94a3b8;
+    }
+}
+
+.person-arrow {
+    color: #888;
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.person-result:hover .person-arrow {
+    opacity: 1;
+}
+
+.empty-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+</style>
+</head>
+<body>
+{% include 'includes/sidebar_teacher.html' %}
+<div class="main-content">
+<div class="chat-layout">
+<!-- Sidebar -->
+<div class="chat-sidebar">
+<div class="sidebar-header">
+<span>Messages</span>
+<div class="new-chat-btn" onclick="toggleNewChatModal()" title="New Message">
+<i class="bi bi-pencil-square"></i>
+</div>
+</div>
+
+<!-- New Chat Modal - MODERN & FIXED -->
+<div class="new-chat-modal" id="newChatModal">
+    <div class="modal-header">
+        <span>New Message</span>
+        <button type="button" class="modal-close-btn" onclick="toggleNewChatModal()" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    
+    <div class="modal-search">
+        <form method="GET">
+            <div class="search-wrapper">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" name="search" placeholder="Search students, parents, or staff..." 
+                       value="{{ search_query }}" autofocus autocomplete="off">
+            </div>
+        </form>
+    </div>
+    
+    <div class="modal-results">
+        {% if search_results.students or search_results.parents or search_results.other_users %}
+            
+            {% if search_results.students %}
+            <div class="result-section-header">Students</div>
+            {% for student in search_results.students %}
+            <a href="{% url 'start_chat' student.user.id %}" class="text-decoration-none text-reset">
+                <div class="person-result">
+                    <img src="{% if student.photo %}{{ student.photo.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                         class="person-result-avatar"
+                         alt="{{ student.user.get_full_name }}"
+                         loading="lazy"
+                         onerror="this.src='{% static 'images/default-avatar.png' %}'">
+                    <div class="person-info">
+                        <div class="person-name">{{ student.user.get_full_name }}</div>
+                        <div class="person-detail">{{ student.classroom.name }} • Roll: {{ student.roll_number }}</div>
+                    </div>
+                    <i class="bi bi-chevron-right person-arrow"></i>
+                </div>
+            </a>
+            {% endfor %}
+            {% endif %}
+
+            {% if search_results.parents %}
+            <div class="result-section-header">Parents</div>
+            {% for parent in search_results.parents %}
+            <a href="{% url 'start_chat' parent.user.id %}" class="text-decoration-none text-reset">
+                <div class="person-result">
+                    <img src="{% if parent.user.profile.photo %}{{ parent.user.profile.photo.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                         class="person-result-avatar"
+                         alt="{{ parent.user.get_full_name }}"
+                         loading="lazy"
+                         onerror="this.src='{% static 'images/default-avatar.png' %}'">
+                    <div class="person-info">
+                        <div class="person-name">{{ parent.user.get_full_name }}</div>
+                        <div class="person-detail">Parent of 
+                            {% for child in parent.children.all %}
+                                {{ child.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right person-arrow"></i>
+                </div>
+            </a>
+            {% endfor %}
+            {% endif %}
+
+            {% if search_results.other_users %}
+            <div class="result-section-header">Staff</div>
+            {% for user in search_results.other_users %}
+            <a href="{% url 'start_chat_teacher' user.id %}" class="text-decoration-none text-reset">
+                <div class="person-result">
+                    <img src="{% if user.profile.photo %}{{ user.profile.photo.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                         class="person-result-avatar"
+                         alt="{{ user.get_full_name }}"
+                         loading="lazy"
+                         onerror="this.src='{% static 'images/default-avatar.png' %}'">
+                    <div class="person-info">
+                        <div class="person-name">{{ user.get_full_name }}</div>
+                        <div class="person-detail">{{ user.role|capfirst }}</div>
+                    </div>
+                    <i class="bi bi-chevron-right person-arrow"></i>
+                </div>
+            </a>
+            {% endfor %}
+            {% endif %}
+
+        {% else %}
+        <div class="empty-results">
+            <i class="bi bi-search fs-1 text-muted mb-3"></i>
+            <p class="text-muted">
+                {% if search_query %}
+                    No results found for "{{ search_query }}"
+                {% else %}
+                    Start typing to search for people
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Rest of your chat list and main chat area remains unchanged -->
+<!-- Chat List -->
+<div class="chat-list">
+      {% if chat_rooms %}
+        {% for room in chat_rooms %}
+<a href="?room={{ room.id }}" class="text-decoration-none text-reset">
+<div class="chat-item {% if selected_room == room %}active{% endif %}">
+<img src="{% if room.other_user.profile.photo %}{{ room.other_user.profile.photo.url }}
+                     {% elif room.other_user.photo %}{{ room.other_user.photo.url }}
+                     {% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+class="chat-avatar" alt="{{ room.other_user.get_full_name }}">
+<div class="chat-preview">
+<div class="chat-name">{{ room.other_user.get_full_name|default:"Group Chat" }}</div>
+<div class="chat-last-msg">
+                {% with last=room.messages.last %}
+                  {% if last %}
+<strong>{% if last.sender == teacher_user %}You:{% else %}{{ last.sender.get_full_name }}:{% endif %}</strong>
+                    {{ last.content|truncatechars:50 }}
+                  {% else %}
+                    No messages yet
+                  {% endif %}
+                {% endwith %}
+</div>
+</div>
+<div class="chat-meta">
+              {% with last=room.messages.last %}
+                {% if last %}{{ last.timestamp|date:"M d, H:i" }}{% endif %}
+              {% endwith %}
+              {% if room.unread_count > 0 %}
+<div class="unread-badge">{{ room.unread_count }}</div>
+              {% endif %}
+</div>
+</div>
+</a>
+        {% endfor %}
+      {% else %}
+<div class="empty-chat">
+<i class="bi bi-chat-heart"></i>
+<h5>No conversations yet</h5>
+<p>Start a new chat with students, parents, or staff</p>
+</div>
+      {% endif %}
+</div>
+</div>
+
+<!-- Main Chat Area -->
+<div class="chat-main">
+<div class="chat-content">
+      {% if selected_room %}
+<div class="chat-header">
+<img src="{% if selected_other_user.profile.photo %}{{ selected_other_user.profile.photo.url }}
+                 {% elif selected_other_user.photo %}{{ selected_other_user.photo.url }}
+                 {% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+class="header-avatar" alt="{{ selected_other_user.get_full_name }}">
+<div class="header-info">
+<h5>{{ selected_other_user.get_full_name|default:selected_room.name|default:"Group Chat" }}</h5>
+<div class="header-status">
+<i class="bi bi-circle-fill text-success" style="font-size:0.6rem;"></i>
+            Online
+</div>
+</div>
+</div>
+<div class="chat-messages" id="chatMessages">
+        {% for message in messages %}
+<div class="message-group {% if message.sender == teacher_user %}sent{% else %}received{% endif %}">
+<div class="msg {% if message.sender == teacher_user %}sent{% else %}received{% endif %}">
+            {{ message.content }}
+<div class="msg-time">
+              {{ message.timestamp|date:"H:i" }}
+              {% if message.sender == teacher_user %}
+<i class="bi bi-check2-all msg-check{% if message.is_read %} text-primary{% endif %}"></i>
+              {% endif %}
+</div>
+</div>
+</div>
+        {% endfor %}
+</div>
+<div class="chat-input">
+<form method="POST" action="{% url 'send_message_teacher' %}">
+          {% csrf_token %}
+<input type="hidden" name="room_id" value="{{ selected_room.id }}">
+<div class="input-wrapper">
+<input type="text" name="content" placeholder="Type your message..." required autocomplete="off">
+<button type="submit" class="send-btn">
+<i class="bi bi-send-fill"></i>
+</button>
+</div>
+</form>
+</div>
+      {% else %}
+<div class="empty-chat">
+<i class="bi bi-chat-dots"></i>
+<h5>Welcome to Messages</h5>
+<p>Select a conversation or start a new one to begin</p>
+</div>
+      {% endif %}
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function toggleNewChatModal() {
+  const modal = document.getElementById('newChatModal');
+  modal.classList.toggle('active');
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('newChatModal');
+  const btn = document.querySelector('.new-chat-btn');
+  const sidebar = document.querySelector('.chat-sidebar');
+
+  if (modal && modal.classList.contains('active')) {
+    if (!modal.contains(e.target) && !btn.contains(e.target) && !sidebar.contains(e.target)) {
+      modal.classList.remove('active');
+    }
+  }
+});
+
+// Auto-scroll to bottom of messages
+const chatMessages = document.getElementById('chatMessages');
+if (chatMessages) {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+</script>
+</body>
+</html>

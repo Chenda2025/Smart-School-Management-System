@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Cards • Elite International School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(99,102,241,0.3);
+        }
+        .student-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .student-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 25px 50px rgba(99,102,241,0.25);
+        }
+        .photo-frame {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 4px solid #6366f1;
+        }
+        .initials-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(99,102,241,0.3);
+        }
+        .search-box {
+            max-width: 500px;
+            margin: 0 auto 3rem auto;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-5">
+            <!-- Epic Header -->
+            <div class="page-header">
+                <h1 class="display-4 fw-bold mb-3">Report Cards & ID Cards</h1>
+                <p class="lead mb-0">Generate academic reports and student ID cards</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-box">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-primary"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search student by name..." onkeyup="searchStudents()">
+                </div>
+            </div>
+
+            <!-- Students Grid -->
+            <div class="row g-4" id="studentsGrid">
+                {% for student in students %}
+                <div class="col-md-6 col-lg-4 col-xl-3 student-item">
+                    <div class="card student-card h-100">
+                        <div class="card-body text-center p-4">
+                            {% if student.user.photo %}
+                                <img src="{{ student.user.photo.url }}" class="rounded-circle photo-frame mb-3 shadow" alt="{{ student.user.get_full_name }}">
+                            {% else %}
+                                <div class="initials-circle mx-auto mb-3">
+                                    {{ student.user.first_name.0|upper }}{{ student.user.last_name.0|upper }}
+                                </div>
+                            {% endif %}
+                            <h5 class="fw-bold mb-1">{{ student.user.get_full_name }}</h5>
+                            <p class="text-muted mb-3">
+                                {{ student.classroom }} • {{ student.section }}
+                            </p>
+                            <div class="d-grid gap-2 mt-4">
+                                <a href="{% url 'report_card' student.id %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-file-earmark-text me-1"></i> View Report Card
+                                </a>
+                                <a href="{% url 'id_card' student.user.id %}" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-card-heading me-1"></i> Generate ID Card
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted mb-4"></i>
+                        <h3 class="text-muted">No students enrolled yet</h3>
+                        <p class="text-muted">Add students to generate reports and ID cards.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/staff_dashboard.js' %}"></script>
+    <script>
+        function searchStudents() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let items = document.getElementsByClassName('student-item');
+
+            for (let i = 0; i < items.length; i++) {
+                let name = items[i].getElementsByTagName('h5')[0].textContent.toLowerCase();
+                let classInfo = items[i].getElementsByTagName('p')[0].textContent.toLowerCase();
+                if (name.includes(input) || classInfo.includes(input)) {
+                    items[i].style.display = "";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

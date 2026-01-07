@@ -1,0 +1,129 @@
+<!-- includes/sidebar_student.html — FINAL STUDENT SIDEBAR — 2025 ELITE EDITION -->
+{% load static %}
+
+<nav class="sidebar">
+    <!-- Updated Sidebar Header - Elite Student Portal 2026 Edition -->
+    <div class="sidebar-header text-center py-4 position-relative">
+        <!-- Background Accent -->
+        <div class="position-absolute top-0 start-0 end-0 h-100 opacity-10" 
+            style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 0 0 20px 20px;"></div>
+        
+        <div class="position-relative z-index-2">
+            <!-- School Logo -->
+            <img src="{% static 'images/school_logo.jpg' %}" 
+                alt="Elite International School Logo" 
+                class="logo rounded-circle border border-4 border-white shadow-lg mb-3"
+                style="width: 100px; height: 100px; object-fit: cover;">
+            
+            <!-- School Name -->
+            <h3 class="text-white fw-bold mb-1" style="font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                Elite International
+            </h3>
+            <p class="text-white-50 small mb-0">School</p>
+            
+            <!-- Student Portal Label -->
+            <div class="mt-3">
+                <span class="badge bg-primary rounded-pill px-4 py-2 fw-medium shadow-sm">
+                    <i class="bi bi-mortarboard-fill me-2"></i>
+                    Student Portal
+                </span>
+            </div>
+
+            <!-- Optional: Welcome Student Name -->
+            <p class="text-white-50 small mt-3 mb-0">
+                Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong> 
+            </p>
+        </div>
+    </div>
+
+    <ul class="nav-list">
+        <!-- MY DASHBOARD -->
+        <li>
+            <a href="{% url 'student_dashboard' %}" class="nav-link {% if request.path == '/student/dashboard/' %}active{% endif %}">
+                <i class="bi bi-house-door-fill"></i>
+                <span>My Dashboard</span>
+            </a>
+        </li>
+
+        <!-- MY GRADES / REPORT CARD -->
+        <li>
+            <a href="{% url 'my_report_card' %}" class="nav-link">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                <span>My Report Card</span>
+            </a>
+        </li>
+
+        <!-- MY ID CARD -->
+        <li>
+            <a href="{% url 'my_id_card' request.user.student_profile.id %}" class="btn btn-warning btn-lg w-100 py-4 shadow-lg">
+                <i class="bi bi-card-heading fs-1 mb-3"></i>
+                <h4>Download ID Card</h4>
+            </a>
+        </li>
+
+        <!-- MY ATTENDANCE -->
+        <li>
+            <a href="{% url 'my_attendance' %}" class="nav-link">
+                <i class="bi bi-calendar-check-fill"></i>
+                <span>My Attendance</span>
+            </a>
+        </li>
+
+        <!-- MY TIMETABLE -->
+        <li>
+            <a href="{% url 'my_timetable' %}" 
+            class="nav-link text-light {% if '/my_timetable/' in request.path %}active{% endif %}">
+                <i class="bi bi-calendar3 me-3 fs-5 text-cyan"></i>
+                <span>Timetable</span>
+            </a>
+        </li>
+
+       <!-- MESSAGES -->
+        <li>
+            <a href="{% url 'student:chat_list_student' %}"
+            class="nav-link text-light {% if request.path == '/student/' or '/student/room/' in request.path %}active{% endif %}">
+                <i class="bi bi-chat-dots-fill me-3 fs-5 text-cyan"></i>
+                <span>Message</span>
+            </a>
+        </li>
+
+        <a class="nav-link text-light d-flex align-items-center justify-content-between position-relative" 
+            href="{% url 'student:my_notifications' %}">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-bell me-3 fs-5 text-info"></i>
+                    <span>My Notifications</span>
+                </div>
+                {% if unread_count > 0 %}
+                    <span class="badge bg-danger rounded-pill position-absolute end-0 translate-middle-y"
+                        style="font-size: 0.7rem; top: 50%;">
+                        {{ unread_count }}
+                    </span>
+                {% endif %}
+            </a>
+
+           <a class="nav-link d-flex align-items-center py-2" href="{% url 'ai_chat_page' %}">
+                <i class="bi bi-robot text-primary me-3" style="font-size: 1.3rem;"></i>
+                <span class="fw-medium">AI Assistant</span>
+                <small class="badge bg-success rounded-pill ms-auto opacity-75">Online</small>
+            </a>
+        
+        <!-- STUDENT INFO -->
+        <!-- MY PROFILE — STUDENT SIDEBAR -->
+    
+        
+        <li class="nav-item mb-2">
+                <a class="nav-link text-light rounded px-3 py-2 d-flex align-items-center {% if request.resolver_match.url_name == 'my_profile' %}active{% endif %}" 
+                   href="{% url 'student:my_profile' %}">
+                    <i class="bi bi-person-circle me-3 fs-5"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+        <!-- LOGOUT -->
+        <li>
+            <a href="{% url 'logout' %}" class="nav-link text-danger">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</nav>

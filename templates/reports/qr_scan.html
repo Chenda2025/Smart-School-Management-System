@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Attendance Scanner • Elite International School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #1e3a8a;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .scanner-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            gap: 2rem;
+        }
+        #reader {
+            width: 700px;
+            max-width: 95%;
+            border: 12px solid #3b82f6;
+            border-radius: 30px;
+            box-shadow: 0 40px 100px rgba(59,130,246,0.7);
+        }
+        .clock {
+            font-size: 4.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 30px rgba(59,130,246,0.8);
+        }
+        .shift {
+            font-size: 2.2rem;
+            font-weight: 600;
+            opacity: 0.9;
+            background: rgba(59,130,246,0.2);
+            padding: 0.6rem 2.5rem;
+            border-radius: 50px;
+        }
+        .result-card {
+            width: 700px;
+            max-width: 95%;
+            background: white;
+            color: #0f172a;
+            border-radius: 30px;
+            padding: 2rem;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+            display: none;
+        }
+        .result-header {
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 1rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .result-photo {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 8px solid #3b82f6;
+            box-shadow: 0 20px 50px rgba(59,130,246,0.6);
+        }
+        .result-name {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 1rem 0 0.5rem;
+        }
+        .result-role {
+            font-size: 1.5rem;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+        .result-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+        }
+        .result-status {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .present { color: #10b981; }
+        .late { color: #f59e0b; }
+        .absent { color: #ef4444; }
+        .early { color: #fb923c; }
+        .manual-entry {
+            width: 700px;
+            max-width: 95%;
+        }
+        .manual-entry input {
+            font-size: 1.8rem;
+            text-align: center;
+            height: 80px;
+        }
+        .manual-entry button {
+            font-size: 1.8rem;
+            padding: 0 2.5rem;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .control-buttons button, .control-buttons a {
+            font-size: 1.4rem;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        QR Attendance Scanner
+    </div>
+
+    <div class="scanner-container">
+        <div class="clock" id="clock"></div>
+        <div class="shift" id="shift">Morning Shift</div>
+
+        <div id="reader"></div>
+
+        <div class="result-card" id="resultCard">
+            <div class="result-header">
+                <div class="result-name" id="resultName"></div>
+                <div class="result-role" id="resultRole"></div>
+            </div>
+
+            <div style="text-align: center;">
+                <img id="resultPhoto" class="result-photo" alt="Photo" style="display: none;">
+            </div>
+
+            <div class="result-info" id="resultInfo"></div>
+
+            <div class="result-status" id="resultStatus"></div>
+
+            <div id="resultMessage" style="font-size: 1.5rem; text-align: center;"></div>
+        </div>
+
+        <div id="readyMessage" style="font-size: 2rem;">
+            Ready to scan...
+        </div>
+
+        <div class="manual-entry">
+            <div class="input-group input-group-lg">
+                <input type="text" id="manualId" class="form-control" placeholder="Enter Roll Number or Employee ID" autocomplete="off">
+                <button class="btn btn-primary" onclick="manualScan()">
+                    <i class="bi bi-check2-circle me-2"></i> Mark
+                </button>
+            </div>
+        </div>
+
+        <div class="control-buttons">
+            <button id="startBtn" class="btn btn-success" onclick="startScanner()">
+                <i class="bi bi-camera-fill me-2"></i> Start Camera
+            </button>
+            <button id="stopBtn" class="btn btn-danger" onclick="stopScanner()" style="display:none;">
+                <i class="bi bi-camera-video-off-fill me-2"></i> Stop Camera
+            </button>
+            <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left-circle me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <audio id="beep" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const beep = document.getElementById('beep');
+        const readyMessage = document.getElementById('readyMessage');
+        const resultCard = document.getElementById('resultCard');
+        const resultPhoto = document.getElementById('resultPhoto');
+        const resultName = document.getElementById('resultName');
+        const resultRole = document.getElementById('resultRole');
+        const resultInfo = document.getElementById('resultInfo');
+        const resultStatus = document.getElementById('resultStatus');
+        const resultMessage = document.getElementById('resultMessage');
+        const clock = document.getElementById('clock');
+        const shiftDisplay = document.getElementById('shift');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        let html5QrCode = null;
+
+        function updateClock() {
+            const now = new Date();
+            clock.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            const hour = now.getHours();
+            shiftDisplay.textContent = hour < 12 ? "Morning Shift" : "Afternoon Shift";
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function showResult(data) {
+            readyMessage.style.display = 'none';
+            resultCard.style.display = 'block';
+
+            resultName.textContent = data.name || 'Unknown';
+            resultRole.textContent = data.role || '';
+            resultStatus.textContent = data.status || 'Error';
+            resultStatus.className = 'result-status ' + (data.status_class || 'absent');
+            resultMessage.textContent = data.message || '';
+
+            resultInfo.innerHTML = '';
+            if (data.info) {
+                Object.keys(data.info).forEach(key => {
+                    const row = document.createElement('div');
+                    row.className = 'row';
+                    row.innerHTML = `
+                        <div class="col-6 label">${key}</div>
+                        <div class="col-6 value">${data.info[key]}</div>
+                    `;
+                    resultInfo.appendChild(row);
+                });
+            }
+
+            if (data.photo) {
+                resultPhoto.src = data.photo;
+                resultPhoto.style.display = 'block';
+            } else {
+                resultPhoto.style.display = 'none';
+            }
+
+            setTimeout(() => {
+                resultCard.style.display = 'none';
+                readyMessage.style.display = 'block';
+            }, 8000);
+        }
+
+        function onScanSuccess(decodedText) {
+            beep.play();
+            readyMessage.style.display = 'none';
+            resultCard.style.display = 'block';
+            resultStatus.textContent = 'Processing...';
+            resultStatus.className = 'result-status';
+
+            fetch('/qr-scan-process/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ qr_data: decodedText })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network error');
+                return response.json();
+            })
+            .then(data => {
+                showResult(data);
+            })
+            .catch(err => {
+                resultStatus.textContent = 'Connection failed';
+                resultStatus.className = 'result-status absent';
+                resultMessage.textContent = 'Check server or try again';
+                setTimeout(() => {
+                    resultCard.style.display = 'none';
+                    readyMessage.style.display = 'block';
+                }, 6000);
+            });
+        }
+
+        function onScanFailure(error) {
+            // Silent
+        }
+
+        function startScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode = null;
+                    initScanner();
+                });
+            } else {
+                initScanner();
+            }
+        }
+
+        function initScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 15, qrbox: { width: 450, height: 450 } };
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+            }).catch(err => {
+                readyMessage.innerHTML = '<div class="absent">Camera access denied</div>';
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                    startBtn.style.display = 'inline-block';
+                    stopBtn.style.display = 'none';
+                    readyMessage.innerHTML = '<div>Camera stopped. Click Start to resume.</div>';
+                });
+            }
+        }
+
+        function manualScan() {
+            const input = document.getElementById('manualId');
+            const value = input.value.trim();
+            if (value) {
+                onScanSuccess(value);
+                input.value = '';
+            }
+        }
+
+        document.getElementById('manualId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') manualScan();
+        });
+
+        // Start camera on load
+        startScanner();
+    </script>
+</body>
+</html>

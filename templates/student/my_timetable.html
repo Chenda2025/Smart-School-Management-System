@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Timetable • Elite International School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .main-content { margin-left: 280px; padding: 2rem; }
+        @media (max-width: 992px) { .main-content { margin-left: 0; padding: 1rem; } }
+        .page-header {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border-radius: 32px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(139,92,246,0.4);
+            margin-bottom: 3rem;
+        }
+        .timetable {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .timetable th {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        .timetable td {
+            padding: 1.5rem;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid rgba(255,255,255,0.1);
+            height: 100px;
+        }
+        .today-class {
+            background: rgba(59,130,246,0.3);
+            border: 3px solid #3b82f6;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(59,130,246,0); }
+            100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+        }
+        .subject-cell {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .subject-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .subject-teacher {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .no-class {
+            color: #94a3b8;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar_student.html' %}
+
+    <div class="main-content">
+        <div class="container py-5">
+            <!-- HEADER -->
+            <div class="page-header">
+                <h1 class="display-4 fw-bold">MY TIMETABLE</h1>
+                <p class="fs-3 opacity-90">Class {{ student.classroom.name }} - {{ student.section.name }}</p>
+                <p class="fs-4 opacity-80">Week of {{ week_start|date:"M d" }} - {{ week_end|date:"M d, Y" }}</p>
+            </div>
+
+            <!-- TIMETABLE GRID -->
+            <div class="timetable">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday<br>{{ days.monday.date|date:"d" }}</th>
+                            <th>Tuesday<br>{{ days.tuesday.date|date:"d" }}</th>
+                            <th>Wednesday<br>{{ days.wednesday.date|date:"d" }}</th>
+                            <th>Thursday<br>{{ days.thursday.date|date:"d" }}</th>
+                            <th>Friday<br>{{ days.friday.date|date:"d" }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in timetable %}
+                        <tr>
+                            <td class="fw-bold">{{ period.time }}</td>
+                            <td class="{% if period.monday.is_today %}today-class{% endif %}">
+                                <div class="subject-cell">
+                                    {% if period.monday.subject %}
+                                        <div class="subject-name">{{ period.monday.subject.name }}</div>
+                                        <div class="subject-teacher">{{ period.monday.subject.teacher.get_full_name|default:"-" }}</div>
+                                    {% else %}
+                                        <div class="no-class">Free Period</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="{% if period.tuesday.is_today %}today-class{% endif %}">
+                                <div class="subject-cell">
+                                    {% if period.tuesday.subject %}
+                                        <div class="subject-name">{{ period.tuesday.subject.name }}</div>
+                                        <div class="subject-teacher">{{ period.tuesday.subject.teacher.get_full_name|default:"-" }}</div>
+                                    {% else %}
+                                        <div class="no-class">Free Period</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="{% if period.wednesday.is_today %}today-class{% endif %}">
+                                <div class="subject-cell">
+                                    {% if period.wednesday.subject %}
+                                        <div class="subject-name">{{ period.wednesday.subject.name }}</div>
+                                        <div class="subject-teacher">{{ period.wednesday.subject.teacher.get_full_name|default:"-" }}</div>
+                                    {% else %}
+                                        <div class="no-class">Free Period</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="{% if period.thursday.is_today %}today-class{% endif %}">
+                                <div class="subject-cell">
+                                    {% if period.thursday.subject %}
+                                        <div class="subject-name">{{ period.thursday.subject.name }}</div>
+                                        <div class="subject-teacher">{{ period.thursday.subject.teacher.get_full_name|default:"-" }}</div>
+                                    {% else %}
+                                        <div class="no-class">Free Period</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="{% if period.friday.is_today %}today-class{% endif %}">
+                                <div class="subject-cell">
+                                    {% if period.friday.subject %}
+                                        <div class="subject-name">{{ period.friday.subject.name }}</div>
+                                        <div class="subject-teacher">{{ period.friday.subject.teacher.get_full_name|default:"-" }}</div>
+                                    {% else %}
+                                        <div class="no-class">Free Period</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- LEGEND -->
+            <div class="text-center mt-5">
+                <span class="badge bg-success me-3">Present</span>
+                <span class="badge bg-danger me-3">Absent</span>
+                <span class="badge bg-warning me-3">Late</span>
+                <span class="badge bg-info">Today</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

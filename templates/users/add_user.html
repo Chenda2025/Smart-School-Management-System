@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New User • Elite School</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+</head>
+<body class="bg-light">
+
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+
+                    <div class="card shadow-lg border-0 rounded-4">
+                        <div class="card-header bg-primary text-white text-center py-4">
+                            <h3 class="mb-0">Add New User</h3>
+                        </div>
+
+                        <div class="card-body p-5">
+
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} text-center fs-5">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <form method="POST" enctype="multipart/form-data" class="mt-4">
+                                {% csrf_token %}
+
+                                <!-- Photo Upload with Preview -->
+                                <div class="text-center mb-5">
+                                    <img id="photo-preview" 
+                                         src="https://ui-avatars.com/api/?name=&background=6366f1&color=fff&size=150&rounded=true&bold=true"
+                                         class="rounded-circle mb-3" 
+                                         width="150" height="150" 
+                                         style="object-fit: cover; border: 5px solid #e2e8f0;">
+                                    <br>
+                                    <label class="btn btn-outline-primary btn-lg mt-3">
+                                        Upload Photo
+                                        <input type="file" name="photo" accept="image/*" class="d-none" onchange="previewPhoto(event)">
+                                    </label>
+                                </div>
+
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">First Name</label>
+                                        <input type="text" name="first_name" class="form-control form-control-lg" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Last Name</label>
+                                        <input type="text" name="last_name" class="form-control form-control-lg" required>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Username</label>
+                                        <input type="text" name="username" class="form-control form-control-lg" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Email</label>
+                                        <input type="email" name="email" class="form-control form-control-lg">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Password</label>
+                                        <input type="password" name="password1" class="form-control form-control-lg" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Confirm Password</label>
+                                        <input type="password" name="password2" class="form-control form-control-lg" required>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Phone</label>
+                                        <input type="text" name="phone" class="form-control form-control-lg" placeholder="+1234567890">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Role</label>
+                                        <select name="role" class="form-select form-select-lg" required>
+                                            <option value="admin">Admin</option>
+                                            <option value="teacher" selected>Teacher</option>
+                                            <option value="student">Student</option>
+                                            <option value="parent">Parent</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-check form-switch fs-5">
+                                            <input class="form-check-input" type="checkbox" name="is_staff">
+                                            <label class="form-check-label fw-bold">Give Admin Panel Access (Staff)</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-5">
+                                    <button type="submit" class="btn btn-success btn-lg px-5 shadow-lg">
+                                        Create User
+                                    </button>
+                                    <a href="/users/all/" class="btn btn-outline-secondary btn-lg px-5 ms-3">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function previewPhoto(event) {
+            const output = document.getElementById('photo-preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.onload = () => URL.revokeObjectURL(output.src);
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/staff_dashboard.js' %}"></script>
+</body>
+</html>

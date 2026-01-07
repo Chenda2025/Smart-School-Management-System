@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance • SmartSchool</title>
+    {% load static %}
+
+    %}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+
+    <style>
+        :root {
+            --primary: #fb923c;
+            --primary-dark: #f97316;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light: #fff7ed;
+            --dark: #451a03;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .attendance-card {
+            background: white;
+            border-radius: 36px;
+            box-shadow: 0 40px 100px rgba(251,146,60,0.35);
+            overflow: hidden;
+            max-width: 1100px;
+            margin: 3rem auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .header .date {
+            font-size: 1.6rem;
+            margin-top: 1rem;
+            opacity: 0.95;
+        }
+
+        .form-container {
+            padding: 4rem 3rem;
+        }
+
+        .form-label {
+            font-weight: 800;
+            color: var(--dark);
+            font-size: 1.3rem;
+        }
+
+        .form-select, .form-control {
+            border-radius: 20px;
+            padding: 1.1rem 1.5rem;
+            font-size: 1.2rem;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px rgba(251,146,60,0.3);
+            transform: translateY(-3px);
+        }
+
+        .btn-attendance {
+            padding: 1.2rem 3rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            border-radius: 60px;
+            box-shadow: 0 15px 40px rgba(251,146,60,0.5);
+            transition: all 0.4s;
+        }
+
+        .btn-present { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-absent  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-late    { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-excused { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+        .btn-attendance:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(251,146,60,0.4);
+        }
+
+        .stats-card h3 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .alert-custom {
+            border-radius: 20px;
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5rem; }
+            .form-container { padding: 2rem 1.5rem; }
+            .btn-attendance { font-size: 1.3rem; padding: 1rem 2rem; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-4">
+            <div class="attendance-card">
+                <!-- Header -->
+                <div class="header">
+                    <h1>Mark Attendance</h1>
+                    <div class="date">
+                        Today • {{ today|date:"l, F d, Y" }}
+                    </div>
+                    {% if total_marked_today > 0 %}
+                    <div class="mt-3 fs-4">
+                        You have marked <strong>{{ total_marked_today }}</strong> record{{ total_marked_today|pluralize }} today
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-container">
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-custom shadow-lg">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- GRADE SELECTOR -->
+                    <div class="row mb-5">
+                        <div class="col-md-6 mx-auto">
+                            <form method="get">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-0">
+                                        <i class="bi bi-building text-primary"></i>
+                                    </span>
+                                    <select name="grade" class="form-select form-select-lg" onchange="this.form.submit()">
+                                        <option value="">Choose Grade</option>
+                                        {% for c in classrooms %}
+                                            <option value="{{ c.id }}" {% if selected_grade == c.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ c.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- MARK ATTENDANCE FORM -->
+                    {% if selected_grade %}
+                    <form method="POST" class="row g-5 align-items-end mb-5">
+                        {% csrf_token %}
+
+                        <div class="col-lg-5">
+                            <label class="form-label">Student Name</label>
+                            <select name="student" class="form-select form-select-lg" required>
+                                <option value="">Select student...</option>
+                                {% for s in students %}
+                                    <option value="{{ s.id }}">
+                                        {{ s.user.get_full_name }} — {{ s.classroom }} {{ s.section }} ({{ s.roll_number }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <label class="form-label">Subject</label>
+                            <select name="subject" class="form-select form-select-lg" required>
+                                <option value="">Choose subject...</option>
+                                {% for sub in subjects %}
+                                    <option value="{{ sub.id }}">
+                                        {{ sub.name }} — {{ sub.classroom }}
+                                        {% if sub.teacher %}
+                                        <small class="text-muted">(by {{ sub.teacher.user.get_full_name }})</small>
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label class="form-label d-block text-center mb-3">Status</label>
+                            <div class="d-grid gap-3">
+                                <button type="submit" name="status" value="present" class="btn btn-present text-white btn-attendance">
+                                    Present
+                                </button>
+                                <button type="submit" name="status" value="absent" class="btn btn-absent text-white btn-attendance">
+                                    Absent
+                                </button>
+                                <button type="submit" name="status" value="late" class="btn btn-late text-white btn-attendance">
+                                    Late
+                                </button>
+                                <button type="submit" name="status" value="excused" class="btn btn-excused text-white btn-attendance">
+                                    Excused
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {% endif %}
+
+                    <!-- Stats Card -->
+                    <div class="stats-card mt-5">
+                        <h3>{{ total_marked_today }}</h3>
+                        <p class="mb-0 fs-4">Records Marked Today</p>
+                    </div>
+
+                    <!-- VIEW TODAY'S ATTENDANCE BUTTON -->
+                    <div class="text-center mt-5">
+                        <button type="button" class="btn btn-primary btn-lg px-5 shadow-lg fw-bold" data-bs-toggle="modal" data-bs-target="#attendanceListModal">
+                            <i class="bi bi-list-check me-3"></i>
+                            View Today's Attendance
+                        </button>
+                    </div>
+
+                    <!-- TODAY'S ATTENDANCE MODAL -->
+                <div class="modal fade" id="attendanceListModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title fw-bold fs-3">
+                                    <i class="bi bi-calendar-check me-2"></i>
+                                    Today's Attendance — {{ today|date:"l, F d, Y" }}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                {% if today_attendance %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle text-center">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Roll No</th>
+                                                <th>Student Name</th>
+                                                <th>Class</th>
+                                                <th>Subject</th>
+                                                <th>Status</th>
+                                                <th>Time</th>
+                                                {% if user.is_superuser %}
+                                                    <th>Action</th>
+                                                {% endif %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for record in today_attendance %}
+                                            <tr>
+                                                <td class="fw-bold">{{ record.student.roll_number }}</td>
+                                                <td class="text-start"><strong>{{ record.student.user.get_full_name }}</strong></td>
+                                                <td>{{ record.student.classroom.name }}</td>
+                                                <td>{{ record.subject.name }}</td>
+                                                <td>
+                                                    {% if record.status == 'present' %}
+                                                        <span class="badge bg-success fs-6 px-3 py-2">Present</span>
+                                                    {% elif record.status == 'absent' %}
+                                                        <span class="badge bg-danger fs-6 px-3 py-2">Absent</span>
+                                                    {% elif record.status == 'late' %}
+                                                        <span class="badge bg-warning fs-6 px-3 py-2">Late</span>
+                                                    {% elif record.status == 'excused' %}
+                                                        <span class="badge bg-info fs-6 px-3 py-2">Excused</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-muted">{{ record.recorded_at|time:"h:i A" }}</td>
+                                                {% if user.is_superuser %}
+                                                <td>
+                                                    <!-- EDIT BUTTON -->
+                                                    <a href="{% url 'edit_attendance' record.id %}" class="btn btn-warning btn-sm">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </a>
+                                                    <!-- DELETE BUTTON -->
+                                                    <form method="POST" action="{% url 'delete_attendance' record.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                                onclick="return confirm('Delete this attendance record?')">
+                                                            <i class="bi bi-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                                {% endif %}
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-calendar-x display-1 text-muted"></i>
+                                    <h3 class="mt-4 text-muted">No attendance recorded yet today</h3>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                    <div class="text-center mt-5">
+                        <a href="{% url 'student_info' %}" class="btn btn-primary btn-lg px-5 shadow-lg">
+                            <i class="bi bi-graph-up-arrow me-2"></i>
+                            View Full Attendance List
+                        </a>
+                    </div>
+
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+         
+
+   
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/staff_dashboard.js' %}"></script>
+</body>
+</html>

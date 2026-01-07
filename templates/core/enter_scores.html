@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Scores • School Management</title>
+    {% load static %}
+    {% load filters %}  <!-- Assuming you have custom filters -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            min-height: 100vh;
+        }
+        .score-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 60px rgba(16,145,129,0.25);
+            padding: 3rem;
+        }
+        .form-select, .form-control {
+            border-radius: 16px;
+        }
+        .btn-save-all {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+        .btn-save-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16,145,129,0.3);
+        }
+        .score-input {
+            text-align: center;
+            font-weight: bold;
+        }
+        .score-90 { background-color: #d4edda !important; }
+        .score-80 { background-color: #fff3cd !important; }
+        .score-60 { background-color: #ffe8cc !important; }
+        .score-fail { background-color: #f8d7da !important; }
+        .search-box {
+            border-radius: 30px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container py-5">
+            <div class="score-box">
+                <h1 class="text-center display-5 fw-bold text-success mb-5">
+                    <i class="bi bi-pencil-square me-3"></i>Enter Student Scores
+                </h1>
+
+                <!-- CLASS + EXAM TYPE SELECTOR -->
+                <div class="row g-4 mb-5 justify-content-center">
+                    <div class="col-lg-4">
+                        <label class="form-label fw-bold text-primary fs-4">Select Grade</label>
+                        <form method="get">
+                            <select name="class" class="form-select form-select-lg" onchange="this.form.submit()">
+                                <option value="">Choose Grade</option>
+                                {% for c in classrooms %}
+                                    <option value="{{ c.id }}" {% if selected_grade == c.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ c.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    <div class="col-lg-4">
+                        <label class="form-label fw-bold text-info fs-4">Exam Type</label>
+                        <form method="get">
+                            <input type="hidden" name="class" value="{{ selected_grade }}">
+                            <select name="exam_type" class="form-select form-select-lg" onchange="this.form.submit()">
+                                <option value="quiz" {% if exam_type|lower == "quiz" %}selected{% endif %}>Quiz</option>
+                                <option value="midterm" {% if exam_type|lower == "midterm" %}selected{% endif %}>Midterm</option>
+                                <option value="final" {% if exam_type|lower == "final" %}selected{% endif %}>Final</option>
+                                <option value="assignment" {% if exam_type|lower == "assignment" %}selected{% endif %}>Assignment</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- STUDENT LIST + SCORES TABLE -->
+                {% if selected_grade and exam_type %}
+                    <div class="alert alert-info text-center fs-5 mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Showing <strong>{{ students_in_class.count }}</strong> students who
+                        <strong>haven't received {{ exam_type }} score yet</strong>
+                    </div>
+
+                    <!-- SEARCH INPUT -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mx-auto">
+                            <input type="text" id="searchInput" class="form-control search-box"
+                                   placeholder="Search by name or roll number..." onkeyup="searchTable()">
+                        </div>
+                    </div>
+
+                    <!-- SCORE ENTRY FORM -->
+                    <form method="POST" class="score-card">
+                        {% csrf_token %}
+                        <input type="hidden" name="exam_type" value="{{ exam_type_raw }}">
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle text-center shadow-sm" id="scoreTable">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th class="fw-bold">Roll No</th>
+                                        <th class="fw-bold text-start">Student Name</th>
+                                        {% for subject in subjects %}
+                                            <th class="fw-bold">{{ subject.name }}</th>
+                                        {% endfor %}
+                                        <th class="fw-bold">Total</th>
+                                        <th class="fw-bold">Average</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in all_students_in_class %}
+                                        <tr class="border-bottom">
+                                            <td class="fw-bold text-primary">{{ student.roll_number }}</td>
+                                            <td class="text-start">
+                                                <strong>{{ student.user.get_full_name }}</strong>
+                                            </td>
+                                            {% for subject in subjects %}
+                                                {% with score=student_scores|get_item:student.id|get_item:subject.id %}
+                                                    <td class="text-center {% if score is not None %}score-{{ score|floatformat:0 }}{% endif %}">
+                                                        <input type="number"
+                                                               name="score_{{ student.id }}_{{ subject.id }}"
+                                                               value="{{ score|default:'' }}"
+                                                               class="score-input form-control"
+                                                               min="0" max="100" step="0.01"
+                                                               placeholder="—"
+                                                               onchange="updateColors(this)">
+                                                        {% if score is not None %}
+                                                            <small class="d-block text-muted fw-bold mt-1">
+                                                                {{ score|floatformat:2 }} → 
+                                                                {% if score >= 96 %}A{% elif score >= 90 %}A-{% elif score >= 85 %}B+{% elif score >= 80 %}B{% elif score >= 75 %}B-{% elif score >= 70 %}C+{% elif score >= 65 %}C{% elif score >= 60 %}C-{% elif score >= 50 %}D{% else %}F{% endif %}
+                                                            </small>
+                                                        {% endif %}
+                                                    </td>
+                                                {% endwith %}
+                                            {% endfor %}
+                                            <td class="fw-bold text-primary fs-5 total-cell">—</td>
+                                            <td class="fw-bold text-success fs-5 avg-cell">—</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="20" class="text-center py-5">
+                                                <i class="bi bi-check-circle-fill display-1 text-success"></i>
+                                                <h3 class="mt-4 text-success fw-bold">
+                                                    All students have {{ exam_type }} scores entered!
+                                                </h3>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-save-all text-white shadow-lg">
+                                <i class="bi bi-save2-fill me-3"></i> Save All Scores
+                            </button>
+                        </div>
+                    </form>
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-building display-1 text-muted"></i>
+                        <h3 class="mt-4 text-muted">Please select a grade and exam type to start entering scores</h3>
+                    </div>
+                {% endif %}
+
+                <!-- Dashboard Link -->
+                <div class="text-center mt-5">
+                    <a href="{% url 'performance_dashboard' %}" class="btn btn-primary btn-lg px-5 shadow-lg">
+                        <i class="bi bi-graph-up-arrow me-2"></i> View Performance Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript: Live Total/Average & Color Update -->
+    <script>
+        function updateColors(input) {
+            const val = parseFloat(input.value) || 0;
+            const cell = input.closest('td');
+            cell.className = 'text-center'; // reset
+            if (val >= 90) cell.classList.add('score-90');
+            else if (val >= 80) cell.classList.add('score-80');
+            else if (val >= 60) cell.classList.add('score-60');
+            else if (val > 0) cell.classList.add('score-fail');
+        }
+
+        function updateRowTotals(row) {
+            const inputs = row.querySelectorAll('.score-input');
+            let total = 0;
+            let count = 0;
+            inputs.forEach(inp => {
+                const val = parseFloat(inp.value) || 0;
+                if (val > 0) {
+                    total += val;
+                    count++;
+                }
+                updateColors(inp);
+            });
+
+            const totalCell = row.querySelector('.total-cell');
+            const avgCell = row.querySelector('.avg-cell');
+
+            if (count > 0) {
+                totalCell.textContent = total.toFixed(2);
+                const avg = total / count;
+                avgCell.textContent = avg.toFixed(2) + "%";
+                avgCell.className = avgCell.className.replace(/text-\w+/g, '');
+                if (avg >= 90) avgCell.classList.add('text-success');
+                else if (avg >= 80) avgCell.classList.add('text-primary');
+                else if (avg >= 60) avgCell.classList.add('text-warning');
+                else avgCell.classList.add('text-danger');
+            } else {
+                totalCell.textContent = "—";
+                avgCell.textContent = "—";
+                avgCell.className = avgCell.className.replace(/text-\w+/g, '');
+            }
+        }
+
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('input', () => updateRowTotals(input.closest('tr')));
+            input.addEventListener('blur', () => updateRowTotals(input.closest('tr')));
+        });
+
+        // Search functionality
+        function searchTable() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#scoreTable tbody tr');
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const roll = row.querySelector('td:first-child').textContent.toLowerCase();
+                row.style.display = (name.includes(input) || roll.includes(input)) ? '' : 'none';
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('#scoreTable tbody tr').forEach(row => {
+                updateRowTotals(row);
+            });
+        });
+    </script>
+</body>
+</html>

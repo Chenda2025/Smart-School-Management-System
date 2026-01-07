@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My ID Card • Elite International School</title>
+
+{% load static %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+<style>
+/* ================================
+   GLOBAL SCREEN STYLES
+================================ */
+body{
+    background: linear-gradient(135deg,#0f172a,#1e293b);
+    font-family: "Segoe UI",system-ui,sans-serif;
+    color:#fff;
+    min-height:100vh;
+}
+
+.main-content{
+    margin-left:280px;
+}
+@media(max-width:992px){
+    .main-content{margin-left:0;}
+}
+
+/* ================================
+   ID CARD WRAPPER
+================================ */
+.id-wrapper{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:3rem 0;
+}
+
+.id-card{
+    width:860px;
+    height:540px;
+    background:#fff;
+    color:#111;
+    border-radius:28px;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 40px 90px rgba(0,0,0,.45);
+    border:10px solid #1e40af;
+}
+
+/* ================================
+   HEADER
+================================ */
+.id-header{
+    background:linear-gradient(135deg,#1e40af,#2563eb);
+    padding:28px;
+    text-align:center;
+    color:#fff;
+}
+
+.id-header h1{
+    font-size:2.6rem;
+    font-weight:900;
+    letter-spacing:1px;
+    margin:0;
+}
+
+.id-header p{
+    font-size:1.3rem;
+    margin-top:6px;
+    opacity:.9;
+}
+
+/* ================================
+   BODY
+================================ */
+.id-body{
+    display:flex;
+    gap:32px;
+    padding:32px;
+}
+
+.id-photo{
+    width:210px;
+    height:210px;
+    border-radius:50%;
+    object-fit:cover;
+    border:7px solid #1e40af;
+    box-shadow:0 12px 30px rgba(0,0,0,.3);
+}
+
+.id-info h2{
+    font-size:2.4rem;
+    font-weight:800;
+    color:#1e40af;
+    margin-bottom:18px;
+}
+
+.id-info p{
+    font-size:1.35rem;
+    margin:10px 0;
+}
+
+.id-info strong{
+    color:#1e40af;
+}
+
+/* ================================
+   QR
+================================ */
+.id-qr{
+    position:absolute;
+    right:30px;
+    bottom:110px;
+    background:#fff;
+    padding:14px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
+    text-align:center;
+}
+
+.id-qr img{
+    width:150px;
+    height:150px;
+}
+
+/* ================================
+   FOOTER
+================================ */
+.id-footer{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    background:#1e40af;
+    color:#fff;
+    padding:16px;
+    text-align:center;
+    font-size:1.1rem;
+}
+
+/* ================================
+   PRINT BUTTON
+================================ */
+.print-btn{
+    margin-top:3rem;
+    padding:1.4rem 4rem;
+    font-size:1.6rem;
+    border-radius:60px;
+    background:#10b981;
+    color:#fff;
+    box-shadow:0 20px 45px rgba(16,185,129,.5);
+}
+
+/* ================================
+   PRINT FIX (IMPORTANT)
+================================ */
+@media print {
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    body {
+        background: #fff !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Hide sidebar */
+    .sidebar,
+    aside,
+    nav {
+        display: none !important;
+    }
+
+    /* Hide print button & page header */
+    .print-btn,
+    .main-content > .text-center:first-child {
+        display: none !important;
+    }
+
+    /* Reset layout */
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Center ID card on page */
+    .id-wrapper {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .id-card {
+        box-shadow: none !important;
+        border: 2px solid #000;
+        transform: scale(0.95);
+        page-break-inside: avoid;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+{% include 'includes/sidebar_student.html' %}
+
+<div class="main-content container py-5">
+
+    <div class="text-center mb-4">
+        <h1 class="fw-bold display-5">MY ID CARD</h1>
+        <p class="fs-4 opacity-75">Elite International School • 2025–2026</p>
+    </div>
+
+    <div class="id-wrapper">
+        <div class="id-card">
+
+            <div class="id-header">
+                <h1>ELITE INTERNATIONAL SCHOOL</h1>
+                <p>Student Identity Card</p>
+            </div>
+
+            <div class="id-body">
+                <div>
+                    {% if student.photo %}
+                        <img src="{{ student.photo.url }}" class="id-photo">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ student.user.get_full_name|urlencode }}&background=1e40af&color=fff&size=512&bold=true"
+                             class="id-photo">
+                    {% endif %}
+                </div>
+
+                <div class="id-info">
+                    <h2>{{ student.user.get_full_name }}</h2>
+                    <p><strong>Student ID:</strong> {{ student.roll_number }}</p>
+                    <p><strong>Grade:</strong> {{ student.classroom.name }} - {{ student.section.name }}</p>
+                    <p><strong>Blood Group:</strong> {{ student.blood_group|default:"N/A" }}</p>
+                    <p><strong>Emergency Contact:</strong> {{ student.emergency_contact|default:"N/A" }}</p>
+                </div>
+
+                <div class="id-qr">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=ID{{ student.id }}&size=200x200">
+                    <div class="fw-bold mt-2">ID {{ student.id }}</div>
+                </div>
+            </div>
+
+            <div class="id-footer">
+                Valid Until: June 30, 2026 • Issued {{ student.admission_date|date:"M Y" }}
+            </div>
+
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button onclick="window.print()" class="btn print-btn">
+            <i class="bi bi-printer me-2"></i> PRINT / SAVE PDF
+        </button>
+    </div>
+
+</div>
+
+</body>
+</html>

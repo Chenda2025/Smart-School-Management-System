@@ -1,0 +1,108 @@
+
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --purple: #a855f7;
+}
+
+body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.page-header {
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    border-radius: 28px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(99, 102, 241, 0.4);
+}
+
+.user-card {
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.user-card:hover {
+    transform: translateY(-15px) scale(1.03);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.user-photo-glow {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 6px solid rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+    transition: all 0.3s;
+}
+
+.user-card:hover .user-photo-glow {
+    box-shadow: 0 0 50px rgba(99, 102, 241, 0.9);
+    border-color: #fff;
+}
+
+.role-glow {
+    padding: 0.6rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.stats-glass {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.floating-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    box-shadow: 0 15px 35px rgba(99,102,241,0.6);
+    font-size: 2rem;
+    transition: all 0.3s;
+}
+
+.floating-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 20px 50px rgba(99,102,241,0.8);
+}
+
+.search-input {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    padding-left: 3.5rem;
+}
+
+.search-input::placeholder { color: rgba(255,255,255,0.6); }
+.search-input:focus {
+    background: rgba(255,255,255,0.25);
+    box-shadow: 0 0 0 0.25rem rgba(99,102,241,0.5);
+    color: white;
+}

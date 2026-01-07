@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Send Notification • Elite International School{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+<style>
+    .card {
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 25px 60px rgba(99, 102, 241, 0.15);
+    }
+    .card-header {
+        border-radius: 32px 32px 0 0 !important;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa) !important;
+    }
+    .form-control, .form-select {
+        border-radius: 20px;
+        padding: 0.8rem 1.2rem;
+        font-size: 1.1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+    .form-label {
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .btn-send {
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        font-size: 1.5rem;
+        font-weight: 700;
+        padding: 1.2rem 5rem;
+        border-radius: 50px;
+        box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        transition: all 0.3s ease;
+    }
+    .btn-send:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 60px rgba(16, 185, 129, 0.5);
+    }
+    .btn-send:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .char-counter {
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+    .section-hint {
+        font-size: 0.95rem;
+        color: #6366f1;
+        font-weight: 500;
+        margin-top: 0.5rem;
+    }
+    .form-section {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-11 col-xl-9">
+            <div class="card">
+                <!-- Header -->
+                <div class="card-header text-white text-center py-5">
+                    <h1 class="display-5 fw-bold mb-3">
+                        <i class="bi bi-bell-fill me-3"></i>Send New Notification
+                    </h1>
+                    <p class="lead opacity-90 mb-0">
+                        Reach your audience instantly with important school updates
+                    </p>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body p-5">
+
+                    <!-- SUCCESS / ERROR MESSAGES (Fixed – No more missing include!) -->
+                    {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+                                    <strong>
+                                        {% if message.tags == 'success' %}
+                                            <i class="bi bi-check-circle-fill me-2"></i>
+                                        {% elif message.tags == 'error' %}
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        {% elif message.tags == 'warning' %}
+                                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                                        {% else %}
+                                            <i class="bi bi-info-circle-fill me-2"></i>
+                                        {% endif %}
+                                        {{ message }}
+                                    </strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" id="notificationForm" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Title Section -->
+                        <div class="form-section">
+                            <label for="title" class="form-label fs-4 text-primary">
+                                <i class="bi bi-pencil-square me-2"></i>Notification Title
+                            </label>
+                            <input type="text"
+                                   name="title"
+                                   id="title"
+                                   class="form-control form-control-lg"
+                                   placeholder="e.g., Parent-Teacher Meeting Scheduled for Friday"
+                                   required
+                                   maxlength="200"
+                                   autocomplete="off">
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="text-muted">Make it clear and concise</small>
+                                <small class="char-counter" id="titleCounter">0 / 200</small>
+                            </div>
+                        </div>
+
+                        <!-- Message Section -->
+                        <div class="form-section">
+                            <label for="message" class="form-label fs-4 text-primary">
+                                <i class="bi bi-chat-dots-fill me-2"></i>Message Content
+                            </label>
+                            <textarea name="message"
+                                      id="message"
+                                      class="form-control"
+                                      rows="8"
+                                      placeholder="Write your full message here...&#10;&#10;You can include details like date, time, venue, instructions, or links."
+                                      required></textarea>
+                            <small class="section-hint mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Use line breaks for better readability on mobile
+                            </small>
+                        </div>
+
+                        <!-- Recipient Section -->
+                        <div class="form-section">
+                            <label for="recipient_type" class="form-label fs-4 text-primary">
+                                <i class="bi bi-people-fill me-2"></i>Send To
+                            </label>
+                            <select name="recipient_type"
+                                    id="recipient_type"
+                                    class="form-select form-select-lg"
+                                    onchange="toggleRecipientFields()"
+                                    required>
+                                <option value="" disabled selected>Select recipient group</option>
+                                {% for value, label in recipient_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <!-- Class Selector -->
+                            <div class="mt-4" id="class_field" style="display: none;">
+                                <label for="classroom" class="form-label fw-bold text-primary">
+                                    <i class="bi bi-building me-2"></i>Select Class
+                                </label>
+                                <select name="classroom" id="classroom" class="form-select form-select-lg">
+                                    <option value="">-- Choose a Class --</option>
+                                    {% for classroom in classrooms %}
+                                        <option value="{{ classroom.id }}">
+                                            {{ classroom.name }}
+                                            {% if classroom.student_count is not None %}
+                                                ({{ classroom.student_count }} students)
+                                            {% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="section-hint">
+                                    <i class="bi bi-lightbulb me-1"></i>
+                                    Only students in the selected class will receive this
+                                </small>
+                            </div>
+
+                            <!-- Individual User Selector -->
+                            <div class="mt-4" id="user_field" style="display: none;">
+                                <label for="user" class="form-label fw-bold text-primary">
+                                    <i class="bi bi-person-fill me-2"></i>Select Individual User
+                                </label>
+                                <select name="user" id="user" class="form-select form-select-lg">
+                                    <option value="">-- Search and select a person --</option>
+                                    {% if students %}
+                                        <optgroup label="Students ({{ students|length }})">
+                                            {% for student in students %}
+                                                <option value="{{ student.id }}">
+                                                    {{ student.get_full_name }} (@{{ student.username }})
+                                                    {% if student.student_profile.classroom %}
+                                                        - {{ student.student_profile.classroom.name }}
+                                                    {% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    {% endif %}
+                                    {% if teachers %}
+                                        <optgroup label="Teachers ({{ teachers|length }})">
+                                            {% for teacher in teachers %}
+                                                <option value="{{ teacher.id }}">
+                                                    {{ teacher.get_full_name }} (@{{ teacher.username }})
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    {% endif %}
+                                </select>
+                                <small class="section-hint">
+                                    <i class="bi bi-lightbulb me-1"></i>
+                                    Perfect for personal reminders or private updates
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="text-center mt-5">
+                            <button type="submit"
+                                    class="btn btn-success btn-send text-white"
+                                    id="submitBtn">
+                                <span class="btn-text">
+                                    <i class="bi bi-send-fill fs-4 me-3"></i>
+                                    Send Notification Now
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    Sending...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Title character counter
+const titleInput = document.getElementById('title');
+const counter = document.getElementById('titleCounter');
+titleInput.addEventListener('input', function() {
+    counter.textContent = this.value.length + ' / 200';
+    counter.style.color = this.value.length > 180 ? '#ef4444' : '#64748b';
+});
+
+// Toggle recipient fields
+function toggleRecipientFields() {
+    const type = document.getElementById('recipient_type').value;
+    document.getElementById('class_field').style.display = type === 'class' ? 'block' : 'none';
+    document.getElementById('user_field').style.display = type === 'individual' ? 'block' : 'none';
+}
+
+// Button loading state
+document.getElementById('notificationForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    const text = btn.querySelector('.btn-text');
+    const loading = btn.querySelector('.btn-loading');
+    btn.disabled = true;
+    text.style.display = 'none';
+    loading.style.display = 'inline-flex';
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleRecipientFields();
+    counter.textContent = titleInput.value.length + ' / 200';
+});
+</script>
+{% endblock %}
