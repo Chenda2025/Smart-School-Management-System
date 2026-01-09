@@ -162,7 +162,6 @@ tinyhtml5==2.0.0
 tldextract==5.3.0
 tokenizers==0.22.1
 toml==0.10.2
-torch==2.2.2
 tornado==6.5.4
 tqdm==4.67.1
 transformers==4.57.3
