@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-v88^yqsum^*z&377a$i)szm=6b7$syjctu&_c5xpeo35#t)t1y'
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
 # ADD THESE 3 LINES AT THE END OF settings.py
 LOGIN_URL = 'login'
