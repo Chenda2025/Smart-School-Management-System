@@ -96,6 +96,7 @@ pandas==2.3.3
 parsel==1.10.0
 pdfkit==1.0.0
 pillow==12.0.0
+playwright==1.57.0
 plotly==6.5.0
 Protego==0.5.0
 protobuf==6.33.2
@@ -110,7 +111,7 @@ pydantic_core==2.41.5
 pydeck==0.9.1
 PyDispatcher==2.0.7
 pydyf==0.11.0
-pyee==11.1.1
+pyee==13.0.0
 pyHanko==0.31.0
 pyhanko-certvalidator==0.29.0
 PyJWT==2.10.1
@@ -161,6 +162,7 @@ tinyhtml5==2.0.0
 tldextract==5.3.0
 tokenizers==0.22.1
 toml==0.10.2
+torch==2.2.2
 tornado==6.5.4
 tqdm==4.67.1
 transformers==4.57.3
@@ -172,6 +174,7 @@ typing_extensions==4.15.0
 tzdata==2025.2
 tzlocal==5.3.1
 uritools==5.0.0
+urllib3==2.6.2
 uuid_utils==0.12.0
 w3lib==2.3.1
 watchdog==6.0.0
@@ -193,4 +196,3 @@ zipp==3.23.0
 zope.interface==8.1
 zopfli==0.4.0
 zstandard==0.25.0
-urllib3>=1.26,<3
