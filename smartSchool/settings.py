@@ -11,6 +11,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-v88^yqsum^*z&377a$i)szm=6b7$syjctu&_c5xpeo35#t)t1y'
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
+# Force collectstatic to always include custom static dirs on Render
+if not DEBUG:
+    STATICFILES_FINDERS = [
+        'django.contrib.staticfiles.finders.FileSystemFinder',
+        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    ]
+
 ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
 # ADD THESE 3 LINES AT THE END OF settings.py
