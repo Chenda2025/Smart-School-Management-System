@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'channels',
     'chat',
     'ai_assistant',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 # ========================================
@@ -191,3 +193,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ========================================
 # Get OpenAI API key safely from environment
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+
+# Use Cloudinary for media storage
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('Root'),
+    'API_KEY': os.getenv('923754956826353'),
+    'API_SECRET': os.getenv('*********************************'),
+}
